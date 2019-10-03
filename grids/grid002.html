@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.26 September 29 2019
+-->
+
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.26"/>
+<script src="../exolve-m.js?v0.26"></script>
+
+<link rel="stylesheet" type="text/css" href="../overrides.css"/>
+<script src="../additions.js"></script>
+<link rel="icon" href="../favicon.ico" />
+
+<title>AOTW Puzzle 2</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: AOTW02
+  exolve-title: Community AOTW Crossword 2
+  exolve-setter: contributors to <a href="https://www.reddit.com/r/crosswords/">/r/crosswords</a>
+  exolve-prelude: 
+    'Reveal this', 'Reveal all!', and 'Check this' (for correct entries) will also show clue parsing notes.
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        SLAPDASH.ICIEST
+        T.L.O.E...O.M.I
+        ARMAGNAC.ENSIGN
+        N.O.G.M...S.G.S
+        CANOEIST.PIERCE
+        E.D.D.T.T.D.A.L
+        .....ORNAMENTAL
+        L.S.A.E.X.R.E.Y
+        ASTONISHED.....
+        M.A.Y.S.V.N.C.B
+        ENRAPT.LAMEJOKE
+        N.K.L...S.S.B.H
+        THEMAN.AIRSPACE
+        E.R.C...O.I.L.A
+        RISKED.UNRESTED
+  exolve-across:
+    1 Bloody careless hit and run? (8) <a href="https://www.reddit.com/r/crosswords/comments/2f2vye/aotd_sads/ck5g0i4/" target="_blank">by lullabysinger (wk 1).</a><br>Def: Bloody careless | SLAP {hit} + DASH {run}
+    5 Here is how the French say it: most cold (6) <a href="https://www.reddit.com/r/crosswords/comments/2gqkn4/aotd_cet/ckqgzzr/" target="_blank">by 9jack9 (wk 4).</a><br>Def: most cold | ICI EST {'Here is' in French}
+    9 Unusual anagram about strong drink (8) <a href="https://www.reddit.com/r/crosswords/comments/2fsou9/aotd_amga/ckdc8ep/" target="_blank">by Antagony (wk 2).</a><br>Def: strong drink | (ANAGRAM)* {unusual} + C {about}
+    10 Standard position in the Navy (6) <a href="https://www.reddit.com/r/crosswords/comments/2okjej/aotd_nin/cmogc83/" target="_blank">by Hooded_Demon (wk 19).</a><br>Def: DD | #2 is only in the US navy, but fairly common knowledge
+    11 One who paddles is not ace at sea (8) <a href="https://www.reddit.com/r/crosswords/comments/2j6ny5/aotd_cnes/cl96hyp/" target="_blank">by professor_glum (wk 8).</a><br>Def: One who paddles | (IS NOT ACE)* {at sea}
+    12 Prepared recipe for punch (6) <a href="https://www.reddit.com/r/crosswords/comments/2pngyz/aotd_ire/cmybjsx/" target="_blank">by Hooded_demon (wk 21).</a><br>Def: punch | (RECIPE)* {prepared}
+    14 Pretty Asian man heading west for India (10) <a href="https://www.reddit.com/r/crosswords/comments/2nlral/aotd_ornamental/cmf3ahf/" target="_blank">by frygut (wk 17).</a><br>Def: Pretty | <b>OR</b><i>i</i><b>ENTAL</b> {Asian} with <b>I</b><i>ndia</i> substituted by {for, a → b} rev. {heading west} MAN
+    18 Confounded a dishonest bastard (10) <a href="https://www.reddit.com/r/crosswords/comments/2m0xx6/aotd_atnse/clzzr4o/" target="_blank">by Hooded_Demon (wk 14).</a><br>Def: Confounded | (A DISHONEST)* {bastard}
+    22 Intoxicated parent is out of order (6) <a href="https://www.reddit.com/r/crosswords/comments/2hge91/aotd_erp/cktf8qm/" target="_blank">by professor_glum (wk 5).</a><br>Def: Intoxicated | (PARENT)* {is out of order}
+    23 Tiny Tim's gag (4,4) <a href="https://www.reddit.com/r/crosswords/comments/2lilr8/aotd_aeoe/clvjtnx/" target="_blank">by ElfBingley (wk 13).</a><br>Def: CD, "Tiny Tim" Cratchit is a cripple in Dickens' A Christmas Carol
+    24 Boss composed anthem (3,3) <a href="https://www.reddit.com/r/crosswords/comments/2rouaa/aotd_tea/cni2lju/" target="_blank">by leftnotracks (wk 24).</a><br>Def: Boss | (ANTHEM)* {composed} | Surface alludes to Bruce Springsteen
+    25 Flying zone up Spooner's sleeve? (8) <a href="https://www.reddit.com/r/crosswords/comments/2s7uzn/aotd_isae/cnnc4lt/" target="_blank">by frygut (wk 25).</a><br>Def: Flying zone | Spoonerism = <b>S</b><i>pare</i> <b>A</b><i>ce</i> {up … sleeve}
+    26 'Gambled' or 'gambolled'? Eff off! (6) <a href="https://www.reddit.com/r/crosswords/comments/2l3vrw/aotd_rse/cls11hf/" target="_blank">by Antagony (wk 12).</a><br>Def: Gambled | <i>f</i><b>RISKED</b> {gambolled} minus {off} F {Eff}
+    27 Worn-out dentures slopping about (8) <a href="https://www.reddit.com/r/crosswords/comments/2o1p0x/aotd_netd/cmjkfa4/" target="_blank">by professor_glum (wk 18).</a><br>Def: Worn-out | (DENTURES)* {slopping about}
+  exolve-down:
+    1 The oldest ancestors have this position (6) <a href="https://www.reddit.com/r/crosswords/comments/2i1ij4/aotd_sac/cky1tdb/" target="_blank">by moonfood (wk 6).</a><br>Def: position | HA {the … have this} <i>olde</i><b>ST ANCE</b><i>stors</i>
+    2 Nutty old man is a nut (6) <a href="https://www.reddit.com/r/crosswords/comments/2iiec6/aotd_amn/cl2gxv0/" target="_blank">by deutosymmetry (wk 7).</a><br>Def: a nut | (OLD MAN)* {Nutty}
+    3 Tracked and resolved (6) <a href="https://www.reddit.com/r/crosswords/comments/2g6w2v/aotd_dge/ckgjewy/s" target="_blank">by pmdboi (wk 3).</a><br>Def: DD
+    4 Sewer rats seem astray on steamship (10)<a href="https://www.reddit.com/r/crosswords/comments/2k82fm/aotd_seamstress_or_sasrs/cliw9up/" target="_blank">by professor_glum (wk 10).</a><br>Def: Sewer | (RATS SEEM)* {astray} + SS {steamship}
+    6 Toy with some beacons I'd erected (8) <a href="https://www.reddit.com/r/crosswords/comments/2n9gd5/aotd_cnie/cmcqcpm/" target="_blank">by Antagony (wk 16).</a><br>Def: Toy with | HA {some} <i>bea</i><b>CONS ID ER</b><i>ect</i>
+    7 Russian fighter and informer enter Europe's borders to defect (8) <a href="https://www.reddit.com/r/crosswords/comments/2p521s/aotd_emigrate/cmth66v/" target="_blank">by professor_glum (wk 20).</a><br>Def: to defect | (MIG {Russian fighter} + RAT {informer}) env. {enter} <b>E</b><i>urop</i><b>E</b> {'s borders}
+    8 Miniskirts trade is tawdry (8) <a href="https://www.reddit.com/r/crosswords/comments/2jnpvp/aotd_tnel/cleob2w/" target="_blank">by Antagony (wk 9).</a><br>Def: tawdry | TIN·Y {mini} env. {skirts} SELL {trade}
+    13 Vexation as corruption leads to dereliction of duty (3,7) <a href="https://www.reddit.com/r/crosswords/comments/2q6a25/aotd_aeain/cn6j4wz/" target="_blank">by Antagony (wk 22).</a><br>Def: dereliction of duty | (VEXATION AS)* {corruption}
+    15 He mourns after burying soldiers (8) <a href="https://www.reddit.com/r/crosswords/comments/2kqq0p/aotd_aetr/clqlbwl/" target="_blank">by frygut (wk 11).</a><br>Def: He mourns | LA·TER {after} env. {burying} MEN {soldiers}
+    16 When one's missing skirt — "arse out"? (8) <a href="https://www.reddit.com/r/crosswords/comments/2r09c9/aotd_tres/cnewsx9/" target="_blank">by frygut (wk 23).</a><br>Def: Semi-&lit | (<b>SK</b><i>i</i><b>RT ARSE</b>)* {out} minus {missing} I {one}
+    17 Wherever a city has power network (8) <a href="https://www.reddit.com/r/crosswords/comments/2t9fg6/aotd_npae/cnxhfef/" target="_blank">by professor_glum (wk 26).</a><br>Def: Wherever | A + <b>N</b><i>ew</i> <b>Y</b><i>ork</i> {city} + <b>P</b><i>ower</i> + LACE {network}
+    19 Legendary swimmer freestyling with finesse, kicking feet! (6) <a href="https://www.reddit.com/r/crosswords/comments/2txeou/aotd_ese/co4gi9l/" target="_blank">by frygut (wk 27).</a><br>Def: Legendary swimmer | (<i>f</i><b>INESS</b>)* {freestyling} minus {kicking} <b>F</b><i>eet</i>
+    20 Small company expanded into metal (6) <a href="https://www.reddit.com/r/crosswords/comments/2umvrg/aotd_oat/co9wgre/" target="_blank">by Antagony (wk 28).</a><br>Def: metal | <b>CO</b><i>mpany</i> {small} = chemical symbol {expanded}
+    21 Have a voice, expressing right to take one's top off (6) <a href="https://www.reddit.com/r/crosswords/comments/2mif7c/aotd_eed/cm4wgza/" target="_blank">by frygut (wk 15).</a><br>Def: to take one's top off | <b>BE HEA</b><i>r</i><b>D</b> {Have a voice} minus {expressing} <b>R</b><i>ight</i>
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="saving" class="wide-box">
+          Your entries are saved automatically in a cookie, for the most
+          recent puzzle that you open from this site. Bookmark/save the
+          <a id="saving-url" href="">URL</a> for more reliable recovery.
+        </div> <!-- #saving -->
+        <div id="small-print" class="wide-box">
+          <div id="control-keys-list" style="display:none">
+            <ul>
+              <li>
+                <b>Tab/Shift-Tab:</b>
+                Jump to the next/previous clue in the current direction
+              </li>
+              <li>
+                <b>Enter, Click/Tap:</b>
+                Toggle current direction
+              </li>
+              <li>
+                <b>Arrow keys:</b>
+                Move to the nearest light square in that direction
+              </li>
+              <li>
+                <b>Spacebar:</b>
+                Place/clear block in the current square if it's diagramless
+              </li>
+            </ul>
+          </div>
+          <div id="parsing-notes-list" style="display:none">
+            <ul>
+              <li>
+                <b>anagram:</b>
+                (FODDER)* {indicator}
+              </li>
+              <li>
+                <b>hidden answer:</b>
+                HA {indicator}
+              </li>
+              <li>
+                <b>homophone:</b>
+                Hom {indicator}
+              </li>
+              <li>
+                <b>double definition:</b>
+                DD
+              </li>
+              <li>
+                <b>cryptic definition:</b>
+                CD
+              </li>
+              <li>
+                <b>envelope (containing or contained):</b>
+                env. {indicator}
+              </li>
+              <li>
+                <b>reversal:</b>
+                rev. {indicator}
+              </li>
+            </ul>
+          </div>
+          <a id="show-control-keys" href=""
+              title="Show/hide controls key"
+              onclick="toggleShowControls();return false">Controls</a>
+          <a id="show-parsing-notes" href=""
+              title="Show/hide parsing notes key"
+              onclick="toggleShowParsingNotes();return false">Parsing</a>
+          <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+          <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+          <span id="copyright"></span>
+        </div> <!-- #small-print -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <!-- <br/>
+      <br/> -->
+    </div> <!-- #grid-panel -->
+    <div id="clues" class="flex-row">
+      <div id="across-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <strong>Across</strong>
+        <table id="across"></table>
+        <br/>
+      </div> <!-- #across-clues-panel -->
+      <div id="down-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <strong>Down</strong>
+        <table id="down"></table>
+        <br/>
+      </div> <!-- #down-clues-panel -->
+      <div id="nodir-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <table id="nodir"></table>
+        <br/>
+      </div> <!-- #nodir-clues-panel -->
+    </div> <!-- #clues -->
+  </div>
+  <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid001.html">PREVIOUS</a> ] &nbsp; [ <a href="grid003.html">NEXT</a> ]</p>
+</div> <!-- #outermost-stack -->
+</body>
+
+</html>

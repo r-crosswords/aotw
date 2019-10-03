@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.26 September 29 2019
+-->
+
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.26"/>
+<script src="../exolve-m.js?v0.26"></script>
+
+<link rel="stylesheet" type="text/css" href="../overrides.css"/>
+<script src="../additions.js"></script>
+<link rel="icon" href="../favicon.ico" />
+
+<title>AOTW Puzzle 11</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: AOTW011
+  exolve-title: Community AOTW Crossword 11
+  exolve-setter: contributors to <a href="https://www.reddit.com/r/crosswords/">/r/crosswords</a>
+  exolve-prelude: 
+    The shaded entry is <a href="https://www.reddit.com/r/crosswords/comments/d5x2g6/aotw_iebe/f0xfo6n/" target="_blank">last week's winner</a>.<br>
+    Select any completed clue and click 'Reveal this' to see its parsing notes.
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        ...L!.0...0.0...
+        .V!0I!0E!0.V!E!S!T!E!C!.
+        .0.K!.0.G!.0.0.0.
+        0R!0E!0E!.R!0E!0L!0N!0
+        .0.A!.0.E!.0.0.0.
+        0U!0B!.S!0A!0T!0R!0N!0
+        .0.L!...S!.0...0.
+        ..0E!0C!0E!0A!0T!0..
+        .0...0.P!...0.0.
+        0E!0P!0T!0A!0E!.O!0R!0
+        .0.0.0.I!.0.0.0.
+        0R!0E!0I!0N!.T!0I!0G!0
+        .0.0.0.T!.0.0.0.
+        .T!0U!0H!0.0N!0E!0N!.
+        ...0.0...0.0...
+  exolve-colour: #e9feff d8 d9 d10 d11 d12 d13 d14 d15
+  exolve-across:
+    5 <strong>V?I?E? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    6 Czech village in a harvest economy (6) <a href="https://www.reddit.com/r/crosswords/comments/cxr66h/aotw_etc/eyo0zxf/" target="_blank">by PointyOintment (wk 1).</a><br>Def: Czech village | HA {in} <i>har</i><b>VEST EC</b><i>onomy</i>
+    9 <strong>?R?E?E (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    10 <strong>R?E?L?N? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    11 <strong>?U?B (4)</strong>  <br><a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    12 <strong>S?A?T?R?N? (10)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    13 <strong>RESCUE PARTY / ?E?C?E?A?T? (6,5)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    18 <strong>?E?P?T?A?E (10)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    21 <strong>O?R? (4)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    22 <strong>?R?E?I?N (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    23 <strong>T?I?G? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    24 <strong>T?U?H? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    25 <strong>?N?E?N (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+  exolve-down:
+    1	Endearing story about Blake Lively (8) <a href="https://www.reddit.com/r/crosswords/comments/d5x2g6/aotw_iebe/f0xfo6n/" target="_blank">by hoytarcane (wk 3).</a><br>Def: Endearing | LI·E {story} env. {about} (BLAKE)* {Lively}
+    2	<strong>?E?E?S (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    3	<strong>?E?E?T?A (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    4	<strong>?T?L?R (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    5	<strong>V?R?U? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    7	<strong>C?N?N? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    8	Makeup in right console inside sports car (11) <a href="https://www.reddit.com/r/crosswords/comments/d2441l/aotw_greasepaint/ezysunj/"  target="_blank">by frygut (wk 2).</a><br>Def: Makeup | (<b>R</b><i>ight</i> + EASE PAIN {console}) env. {inside} G·T {sports car}
+    14 <strong>O?T?I?H? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    15 <strong>T?O?I?E? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    16 <strong>?E?R?T (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    17 <strong>?R?G?N (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    19 <strong>P?E?U? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    20 <strong>E?T?N? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="saving" class="wide-box">
+          Your entries are saved automatically in a cookie, for the most
+          recent puzzle that you open from this site. Bookmark/save the
+          <a id="saving-url" href="">URL</a> for more reliable recovery.
+        </div> <!-- #saving -->
+        <div id="small-print" class="wide-box">
+          <div id="control-keys-list" style="display:none">
+            <ul>
+              <li>
+                <b>Tab/Shift-Tab:</b>
+                Jump to the next/previous clue in the current direction
+              </li>
+              <li>
+                <b>Enter, Click/Tap:</b>
+                Toggle current direction
+              </li>
+              <li>
+                <b>Arrow keys:</b>
+                Move to the nearest light square in that direction
+              </li>
+              <li>
+                <b>Spacebar:</b>
+                Place/clear block in the current square if it's diagramless
+              </li>
+            </ul>
+          </div>
+          <div id="parsing-notes-list" style="display:none">
+            <ul>
+              <li>
+                <b>anagram:</b>
+                (FODDER)* {indicator}
+              </li>
+              <li>
+                <b>hidden answer:</b>
+                HA {indicator}
+              </li>
+              <li>
+                <b>homophone:</b>
+                Hom {indicator}
+              </li>
+              <li>
+                <b>double definition:</b>
+                DD
+              </li>
+              <li>
+                <b>cryptic definition:</b>
+                CD
+              </li>
+              <li>
+                <b>envelope (containing or contained):</b>
+                env. {indicator}
+              </li>
+              <li>
+                <b>reversal:</b>
+                rev. {indicator}
+              </li>
+            </ul>
+          </div>
+          <a id="show-control-keys" href=""
+             title="Show/hide controls key"
+             onclick="toggleShowControls();return false">Controls</a>
+          <a id="show-parsing-notes" href=""
+             title="Show/hide parsing notes key"
+             onclick="toggleShowParsingNotes();return false">Parsing</a>
+          <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+          <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+          <span id="copyright"></span>
+        </div> <!-- #small-print -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <!-- <br/>
+      <br/> -->
+    </div> <!-- #grid-panel -->
+    <div id="clues" class="flex-row">
+      <div id="across-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <strong>Across</strong>
+        <table id="across"></table>
+        <br/>
+      </div> <!-- #across-clues-panel -->
+      <div id="down-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <strong>Down</strong>
+        <table id="down"></table>
+        <br/>
+      </div> <!-- #down-clues-panel -->
+      <div id="nodir-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <table id="nodir"></table>
+        <br/>
+      </div> <!-- #nodir-clues-panel -->
+    </div> <!-- #clues -->
+  </div>
+  <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid010.html">PREVIOUS</a> ] &nbsp; [ NEXT ]</p>
+</div> <!-- #outermost-stack -->
+</body>
+
+</html>

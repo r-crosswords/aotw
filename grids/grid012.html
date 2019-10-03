@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.26 September 29 2019
+-->
+
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.26"/>
+<script src="../exolve-m.js?v0.26"></script>
+
+<link rel="stylesheet" type="text/css" href="../overrides.css"/>
+<script src="../additions.js"></script>
+<link rel="icon" href="../favicon.ico" />
+
+<title>AOTW Puzzle 12</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: AOTW012
+  exolve-title: Community AOTW Crossword 12
+  exolve-setter: contributors to <a href="https://www.reddit.com/r/crosswords/">/r/crosswords</a>
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+      0E!0B!0R!.L!0M!0N!0T!0
+      .0.0.0.0.0.0.0.
+      0R!0C!0O!0S!.S!0U!0R!0
+      .0.0.0.0.0.0.0.
+      ...S!0E!0D!0A!0E!0A!0
+      .0.0.0.0.0...0.
+      0A!0A!...T!0R!0A!0O!0
+      .0.0.0.0.0.0.0.
+      0E!0E!0I!0H!...B!0T!0
+      .0...0.0.0.0.0.
+      0O!0A!0L!0F!0A!0T!...
+      .0.0.0.0.0.0.0.
+      0I!0A!0A!.O!0T!0O!0R!0
+      .0.0.0.0.0.0.0.
+      0E!0E!0E!0T!.N!0S!0A!0
+  exolve-across:
+    1 <strong>?E?B?R (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    5 <strong>L?M?N?T? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    9 <strong>?R?C?O?S (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    10 <strong>S?U?R? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    11 <strong>SPEED CAMERAS/S?E?D?A?E?A? (5,7)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    13 <strong>?A?A (4)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    14 <strong>T?R?A?O? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    17 <strong>?E?E?I?H (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    18 <strong>B?T? (4)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    20 <strong>MOVABLE FEAST/?O?A?L?F?A?T (7,5)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    23 <strong>?I?A?A (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    24 <strong>O?T?O?R? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    25 <strong>?E?E?E?T (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    26 <strong>N?S?A? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+  exolve-down:
+    2 <strong>E?R? (4)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    3 <strong>B?C?S?A?E (9)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    4 <strong>R?O?E? (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    5 <strong>LAST DITCH EFFORT/L?S?D?T?H?F?O?T (4,5,6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    6 <strong>M?S?A?R? (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    7 <strong>N?U?E (5)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    8 <strong>T?R?A?O?T? (10)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    12 <strong>?A?E?O?I?E (10)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    15 <strong>A?B?T?O?S (9)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    16 <strong>?I?L?A?E (8)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    19 <strong>?A?T?N (6)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    21 <strong>A?A?E (5)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+    22 <strong>?R?A (4)</strong> <a href=""  target="_blank">by  (wk ).</a><br>Def:  | 
+  exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+  <div class="flex-col" id="outermost-stack">
+    <h2 id="title">Title</h2>
+    <div id="setter"></div>
+    <div id="prelude"></div>
+    <div id="current-clue-parent">
+      <div id="current-clue"></div>
+    </div>
+    <div class="flex-row">
+      <div id="grid-panel">
+        <div id="grid-parent-centerer">
+          <div id="grid-parent">
+            <svg id="grid" zoomAndPan="disable"></svg>
+            <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+            <div id="nina-group" style="display:none;left:0;top:0"></div>
+          </div> <!-- #grid-parent -->
+        </div> <!-- #grid-parent-centerer -->
+        <div id="controls-etc">
+          <div id="controls" class="wide-box">
+            <div id="button-row-1" class="controls-row">
+              <button id="clear" class="button"
+                  onclick="clearCurrent()">Clear this</button>
+              <button id="clear-all" class="button"
+                  onclick="clearAll()">Clear all!</button>
+              <button id="check" class="button" style="display:none"
+                  onclick="checkCurrent()">Check this</button>
+              <button id="check-all" class="button" style="display:none"
+                  onclick="checkAll()">Check all!</button>
+            </div> <!-- #button-row-1 -->
+            <div id="button-row-2" class="controls-row">
+              <button id="reveal" class="button" style="display:none"
+                  onclick="revealCurrent()">Reveal this</button>
+              <button id="ninas" class="button" style="display:none"
+                  onclick="toggleNinas()">Show ninas</button>
+              <button id="reveal-all" class="button" style="display:none"
+                  onclick="revealAll()">Reveal all!</button>
+            </div> <!-- #button-row-2 -->
+          </div> <!-- #controls -->
+          <div id="errors"></div>
+          <div id="status">
+            Squares filled:
+            <span id="status-num-filled">0</span>/<span
+                  id="status-num-total"></span>
+          </div> <!-- #status -->
+          <div id="saving" class="wide-box">
+            Your entries are saved automatically in a cookie, for the most
+            recent puzzle that you open from this site. Bookmark/save the
+            <a id="saving-url" href="">URL</a> for more reliable recovery.
+          </div> <!-- #saving -->
+          <div id="small-print" class="wide-box">
+            <div id="control-keys-list" style="display:none">
+              <ul>
+                <li>
+                  <b>Tab/Shift-Tab:</b>
+                  Jump to the next/previous clue in the current direction
+                </li>
+                <li>
+                  <b>Enter, Click/Tap:</b>
+                  Toggle current direction
+                </li>
+                <li>
+                  <b>Arrow keys:</b>
+                  Move to the nearest light square in that direction
+                </li>
+                <li>
+                  <b>Spacebar:</b>
+                  Place/clear block in the current square if it's diagramless
+                </li>
+              </ul>
+            </div>
+            <div id="parsing-notes-list" style="display:none">
+              <ul>
+                <li>
+                  <b>anagram:</b>
+                  (FODDER)* {indicator}
+                </li>
+                <li>
+                  <b>hidden answer:</b>
+                  HA {indicator}
+                </li>
+                <li>
+                  <b>homophone:</b>
+                  Hom {indicator}
+                </li>
+                <li>
+                  <b>double definition:</b>
+                  DD
+                </li>
+                <li>
+                  <b>cryptic definition:</b>
+                  CD
+                </li>
+                <li>
+                  <b>envelope (containing or contained):</b>
+                  env. {indicator}
+                </li>
+                <li>
+                  <b>reversal:</b>
+                  rev. {indicator}
+                </li>
+              </ul>
+            </div>
+            <a id="show-control-keys" href=""
+               title="Show/hide controls key"
+               onclick="toggleShowControls();return false">Controls</a>
+            <a id="show-parsing-notes" href=""
+               title="Show/hide parsing notes key"
+               onclick="toggleShowParsingNotes();return false">Parsing</a>
+            <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+          <div id="questions" class="wide-box"></div> 
+          <div id="submit-parent">
+            <button id="submit" class="button" style="display:none"
+                onclick="submitSolution()">Submit!</button>
+          </div> <!-- submit-parent -->
+          <div id="explanations" class="wide-box" style="display:none"></div>
+        </div> <!-- #controls-etc -->
+        <!-- <br/>
+        <br/> -->
+      </div> <!-- #grid-panel -->
+      <div id="clues" class="flex-row">
+        <div id="across-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <strong>Across</strong>
+          <table id="across"></table>
+          <br/>
+        </div> <!-- #across-clues-panel -->
+        <div id="down-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <strong>Down</strong>
+          <table id="down"></table>
+          <br/>
+        </div> <!-- #down-clues-panel -->
+        <div id="nodir-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <table id="nodir"></table>
+          <br/>
+        </div> <!-- #nodir-clues-panel -->
+      </div> <!-- #clues -->
+    </div>
+    <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid011.html">PREVIOUS</a> ] &nbsp; [ NEXT ]</p>
+</div> <!-- #outermost-stack -->
+</body>
+
+</html>

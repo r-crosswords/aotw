@@ -1,0 +1,11 @@
+/* ACB overrides to standard settings in exolve files */
+
+.anno-text {
+  font-style: normal;
+  font-size: small;
+  font-family: sans-serif;
+}
+.prefill {
+  /* fill: darkred; */
+  font-weight: 600;
+}

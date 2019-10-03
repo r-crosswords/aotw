@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.26 September 29 2019
+-->
+
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.26"/>
+<script src="../exolve-m.js?v0.26"></script>
+
+<link rel="stylesheet" type="text/css" href="../overrides.css"/>
+<script src="../additions.js"></script>
+<link rel="icon" href="../favicon.ico" />
+
+<title>AOTW Puzzle 5</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: AOTW05
+  exolve-title: Community AOTW Crossword 5
+  exolve-setter: contributors to <a href="https://www.reddit.com/r/crosswords/">/r/crosswords</a>
+  exolve-prelude: 
+    'Reveal this', 'Reveal all!', and 'Check this' (for correct entries) will also show clue parsing notes.
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        CLAIMER.EYETEST
+        O.B.O.O.C.D.P.E
+        SIREN.BROADSIDE
+        T.U.O.O.N.Y.D.N
+        AMPUTATION.FETA
+        R.T.H...M.P.M.G
+        ...DEBILITATIVE
+        S.M.I.D.S.I.C.R
+        TRAMSPOTTING...
+        O.G.T.L...L.B.I
+        PRAM.NANOSECOND
+        P.Z.H.T.A.V.T.Y
+        ANIMATORS.EXTOL
+        G.N.T.R.I.L.L.L
+        EYELETS.SYSTEMS
+  exolve-across:
+    1 Professor, I'm real upset after losing the last eleven competitions! (7) <a href="https://www.reddit.com/r/crosswords/comments/48gio6/aotdcamr/d0k1u3w/" target="_blank">by Antagony (wk 2).</a><br>Def: Professor (also semi-&lit as the round was set by professor_glum) | <b>C</b><i>ompetitions</i> {after losing last eleven} + (I'M REAL)* {upset}
+    5 Regulars are very restless at exam (3,4) <a href="https://www.reddit.com/r/crosswords/comments/4cup7e/aotd_eeet/d1loepx/" target="_blank">by stinkercross (wk 7).</a><br>Def: exam | <i>v</i><b>E</b><i>r</i><b>Y</b><i>r</i><b>E</b><i>s</i><b>T</b><i>l</i><b>E</b><i>s</i><b>S</b><i>a<i/><b>T</b> {Regulars}
+    9 'Sea Trap' switched around in Spoonerism (5) <a href="https://www.reddit.com/r/crosswords/comments/4igvz5/aotd_srn/d326knp/" target="_blank">by frygut (wk 13).</a><br>Def: Sea trap | rev. {switched around} HA {in} <i>Spoo</i><b>NERIS</b><i>m</i>
+    10 Ways to stand around and criticize (9) <a href="https://www.reddit.com/r/crosswords/comments/4a0rb8/aotd_bodie/d0x0oiq/" target="_blank">by cimeran (wk 4).</a><br>Def: criticize | B·IDE {to stand} env. {around} ROADS {Ways}
+    11 A strange growth around bottom of hip renders one legless (10) <a href="https://www.reddit.com/r/crosswords/comments/50z68f/aotd_aptto/d78cnzm/" target="_blank">by 9jack9 (wk 30).</a><br>Def: renders one legless | A + M·UTATION {strange growth} env. {around} <i>hi</i><b>P</b> {bottom}
+    12 Cheese is not right after curdling (4) <a href="https://www.reddit.com/r/crosswords/comments/4ensrx/aotd_ea/d22n4xe/" target="_blank">by McRoosta (wk 9).</a><br>Def: Cheese | (<b>AFTE</b><i>r</i> {not right})* {curdling}
+    14 Liquid diet a bit evil, making one feel weak (12) <a href="https://www.reddit.com/r/crosswords/comments/4gwfbv/aotd_eiiaie/d2mjak9/" target="_blank">by cimeran (wk 12).</a><br>Def: making one feel weak | (DIET A BIT EVIL)* {Liquid}
+    18 Running after unwanted messages, according to Spooner, is a nerdy pursuit (4, 8) <a href="https://www.reddit.com/r/crosswords/comments/4w0j5s/aotd_tasotn/d64a8y5/" target="_blank">by professor_glum (wk 25).</a><br>Def: a nerdy pursuit | Spoonerism = SPAM {unwanted messages} TROTTING {running} <i>after</i>
+    21 Power to force the issue's conveyance (4) <a href="https://www.reddit.com/r/crosswords/comments/4dtuzd/aotd_pa/d1wx7p7/" target="_blank">by professor_glum (wk 8).</a><br>Def: the issue's conveyance (chiefly British = short form of 'perambulator', a baby carriage) | <b>P</b><i>ower</i> + {RAM {to force}
+    22 Bunged up by havin' a nose condition for a short time (10) <a href="https://www.reddit.com/r/crosswords/comments/4syd5x/aotd_aoeod/d5d6aq4/" target="_blank">by Droooo (wk 22).</a><br>Def: a short time | HA {Bunged up by} <i>havi</i><b>N A NOSE COND</b><i>ition</i>
+    25 Mutinous to a man - Sir Walt and his kind (9) <a href="https://www.reddit.com/r/crosswords/comments/4xq7rt/aotd_aiaos/d6htbm8/" target="_blank">by professor_glum (wk 27).</a><br>Def: Walt and his kind | (TO A MAN SIR)* {Mutinous}
+    26 Brit leaves in Brexit, to initially loud praise (5) <a href="https://www.reddit.com/r/crosswords/comments/4pnc6s/aotd_etl/d4na2qz/" target="_blank">by xworder1 (wk 19).</a><br>Def: praise | <b>B</b><i>r</i><b>EX</b><i>it</i> {–Brit} + TO + <b>L</b><i>oud</i> {initially}
+    27 See sanctions used to tie up many things (7) <a href="https://www.reddit.com/r/crosswords/comments/4nada1/aotd_eees/d42cdft/" target="_blank">by Antagony (wk 17).</a><br>Def: used to tie up many things | EYE {See} + LETS {sanctions}
+    28 Text about kinky type's heartless ways (7) <a href="https://www.reddit.com/r/crosswords/comments/4981el/aotd_sses/d0qla40/" target="_blank">by stinkercross (wk 3).</a><br>Def: ways | S·MS {Text} env. {about} (<b>TY</b><i>p</i><b>ES</b> {heartless})* {kinky}
+  exolve-down:
+    1 One of the two top players leaves pitch (2-4) <a href="https://www.reddit.com/r/crosswords/comments/4b2hzb/aotd_csa/d15jesi/" target="_blank">by frygut (wk 5).</a><br>Def: One of the two top players | COS {leaves, lettuce} + TAR {pitch}
+    2 Quick! Adjust bra and put pants on bottom half (6) <a href="https://www.reddit.com/r/crosswords/comments/4wxmaa/aotd_arp/d6bcnwv/" target="_blank">by Hooded_Demon (wk 26).</a><br>Def: Quick | (BRA)* {Adjust} + (PUT)* {pants} ('on bottom half' = 'below' in a down clue)
+    3 He may be a Christian, but sadly, he's into Tom (10) <a href="https://www.reddit.com/r/crosswords/comments/4qmi8h/aotd_mntes/d4u81lh/" target="_blank">by bobweiszsucks (wk 20).</a><br>Def: He may be a Christian | (HE'S INTO TOM)* {sadly}
+    4 Managed to rob an automatic machine (5) <a href="https://www.reddit.com/r/crosswords/comments/46xth6/aotd_robot/d0a4ze3/" target="_blank">by professor_glum (wk 1).</a><br>Def: an automatic machine | (TO ROB)* {Managed}
+    5 Social scientist comes into new position (9) <a href="https://www.reddit.com/r/crosswords/comments/4kij5f/aotd_eooit/d3f8mzu/" target="_blank">by leftnotracks (wk 15).</a><br>Def: Social scientist | (COMES INTO)* {new position}
+    6 Fluid motion covered in Advanced Dynamics! (4) <a href="https://www.reddit.com/r/crosswords/comments/4u57bm/aotd_ed/d5o8ej6/" target="_blank">by bobweiszsucks (wk 23).</a><br>Def: Fluid motion | HA {covered in} <i>Advanc</i><b>ED DY</b><i>namics</i>
+    7 Half-drowned by great wave (8) <a href="https://www.reddit.com/r/crosswords/comments/4zyfva/aotd_eiei/d6zv4vv/" target="_blank">by stinkercross (wk 29).</a><br>Def: wave | DEMI {Half} env. {drowned by} EPI·C {great}
+    8 Green tea replenished youth (8) <a href="https://www.reddit.com/r/crosswords/comments/4f7pow/aotd_teae/d2925i4/" target="_blank">by SqueakyKleene359 (wk 10).</a><br>Def: youth | (GREEN TEA)* {replenished}
+    13 Extents of suffering produced by incredibly evil plans to enslave everyone ultimately (4,6) <a href="https://www.reddit.com/r/crosswords/comments/4v0n84/aotd_anees/d5uoxus/" target="_blank">by Antagony (wk 24).</a><br>Def: Extents of suffering | (EVIL PLANS)* {incredibly} env. {to enslave} <i>everyon</i><b>E</b> {ultimately}
+    15 Kind soul has two Irish regulars as devoted admirers (9) <a href="https://www.reddit.com/r/crosswords/comments/4onxxp/aotd_ioaos/d4e7yc1/" target="_blank">by stinkercross (wk 18).</a><br>Def: devout admirers | Alternate letters {regulars} of <i>K</i><b>I</b><i>n</i><b>D</b><i>s</i><b>O</b><i>u</i><b>L</b><i>h</i><b>A</b><i>s</i><b>T</b><i>w</i><b>O</b><i>I</i><b>R</b><i>i</i><b>S</b><i>h</i>
+    16 Finish gives close silver in Games (8) <a href="https://www.reddit.com/r/crosswords/comments/4ysxct/aotd_tpae/d6qfgqj/" target="_blank">by Droooo (wk 28).</a><br>Def: Finish | (STOP {close} + AG {silver}) env. {in} P·E {games, i.e. physical education}
+    17 Paperclip (8) <a href="https://www.reddit.com/r/crosswords/comments/4jf8cd/aotw_aaie/d37dh38/" target="_blank">by TimAtamlibtoim (wk 14).</a><br>Def: DD {Paper & clip}
+    19 Felt to be holding back courage (6) <a href="https://www.reddit.com/r/crosswords/comments/4bumvq/aotd_bottle/d1curoi/" target="_blank">by halfajacob (wk 6).</a><br>Def: courage | HA {holding} <i>F</i><b>ELT TO B</b><i>e</i> rev. {back}
+    20 False gods call for good times! (6) <a href="https://www.reddit.com/r/crosswords/comments/4fwwgp/aotd_dls/d2eaz3k/" target="_blank">by bobweiszsucks (wk 11).</a><br>Def: good times | Hom {call} of 'idols' {False Gods}
+    23 Spring up, having answer for the question "Who sang the Thong Song?" (5) <a href="https://www.reddit.com/r/crosswords/comments/4rn7ma/aotd_oss/d593q5a/" target="_blank">by frygut (wk 21).</a><br>Def: Spring | SISQO {sang the Thong Song} reversed {up, <i>in a down clue</i>} with A replacing Q {'answer' for the 'question'}
+    24 Some of chateau's not fancy at all! (4) <a href="https://www.reddit.com/r/crosswords/comments/4ll1ba/aotd_ae/d3v9mwv/" target="_blank">by frygut (wk 16).</a><br>Def: not fancy at all | HA {Some of} <i>c</i><b>HATE</b><i>eua</i>
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+  <div class="flex-col" id="outermost-stack">
+    <h2 id="title">Title</h2>
+    <div id="setter"></div>
+    <div id="prelude"></div>
+    <div id="current-clue-parent">
+      <div id="current-clue"></div>
+    </div>
+    <div class="flex-row">
+      <div id="grid-panel">
+        <div id="grid-parent-centerer">
+          <div id="grid-parent">
+            <svg id="grid" zoomAndPan="disable"></svg>
+            <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+            <div id="nina-group" style="display:none;left:0;top:0"></div>
+          </div> <!-- #grid-parent -->
+        </div> <!-- #grid-parent-centerer -->
+        <div id="controls-etc">
+          <div id="controls" class="wide-box">
+            <div id="button-row-1" class="controls-row">
+              <button id="clear" class="button"
+                  onclick="clearCurrent()">Clear this</button>
+              <button id="clear-all" class="button"
+                  onclick="clearAll()">Clear all!</button>
+              <button id="check" class="button" style="display:none"
+                  onclick="checkCurrent()">Check this</button>
+              <button id="check-all" class="button" style="display:none"
+                  onclick="checkAll()">Check all!</button>
+            </div> <!-- #button-row-1 -->
+            <div id="button-row-2" class="controls-row">
+              <button id="reveal" class="button" style="display:none"
+                  onclick="revealCurrent()">Reveal this</button>
+              <button id="ninas" class="button" style="display:none"
+                  onclick="toggleNinas()">Show ninas</button>
+              <button id="reveal-all" class="button" style="display:none"
+                  onclick="revealAll()">Reveal all!</button>
+            </div> <!-- #button-row-2 -->
+          </div> <!-- #controls -->
+          <div id="errors"></div>
+          <div id="status">
+            Squares filled:
+            <span id="status-num-filled">0</span>/<span
+                  id="status-num-total"></span>
+          </div> <!-- #status -->
+          <div id="saving" class="wide-box">
+            Your entries are saved automatically in a cookie, for the most
+            recent puzzle that you open from this site. Bookmark/save the
+            <a id="saving-url" href="">URL</a> for more reliable recovery.
+          </div> <!-- #saving -->
+          <div id="small-print" class="wide-box">
+            <div id="control-keys-list" style="display:none">
+              <ul>
+                <li>
+                  <b>Tab/Shift-Tab:</b>
+                  Jump to the next/previous clue in the current direction
+                </li>
+                <li>
+                  <b>Enter, Click/Tap:</b>
+                  Toggle current direction
+                </li>
+                <li>
+                  <b>Arrow keys:</b>
+                  Move to the nearest light square in that direction
+                </li>
+                <li>
+                  <b>Spacebar:</b>
+                  Place/clear block in the current square if it's diagramless
+                </li>
+              </ul>
+            </div>
+            <div id="parsing-notes-list" style="display:none">
+              <ul>
+                <li>
+                  <b>anagram:</b>
+                  (FODDER)* {indicator}
+                </li>
+                <li>
+                  <b>hidden answer:</b>
+                  HA {indicator}
+                </li>
+                <li>
+                  <b>homophone:</b>
+                  Hom {indicator}
+                </li>
+                <li>
+                  <b>double definition:</b>
+                  DD
+                </li>
+                <li>
+                  <b>cryptic definition:</b>
+                  CD
+                </li>
+                <li>
+                  <b>envelope (containing or contained):</b>
+                  env. {indicator}
+                </li>
+                <li>
+                  <b>reversal:</b>
+                  rev. {indicator}
+                </li>
+              </ul>
+            </div>
+            <a id="show-control-keys" href=""
+                title="Show/hide controls key"
+                onclick="toggleShowControls();return false">Controls</a>
+            <a id="show-parsing-notes" href=""
+                title="Show/hide parsing notes key"
+                onclick="toggleShowParsingNotes();return false">Parsing</a>
+            <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+          <div id="questions" class="wide-box"></div> 
+          <div id="submit-parent">
+            <button id="submit" class="button" style="display:none"
+                onclick="submitSolution()">Submit!</button>
+          </div> <!-- submit-parent -->
+          <div id="explanations" class="wide-box" style="display:none"></div>
+        </div> <!-- #controls-etc -->
+        <!-- <br/>
+        <br/> -->
+      </div> <!-- #grid-panel -->
+      <div id="clues" class="flex-row">
+        <div id="across-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <strong>Across</strong>
+          <table id="across"></table>
+          <br/>
+        </div> <!-- #across-clues-panel -->
+        <div id="down-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <strong>Down</strong>
+          <table id="down"></table>
+          <br/>
+        </div> <!-- #down-clues-panel -->
+        <div id="nodir-clues-panel" class="clues-box" style="display:none">
+          <hr/>
+          <table id="nodir"></table>
+          <br/>
+        </div> <!-- #nodir-clues-panel -->
+      </div> <!-- #clues -->
+    </div>
+    <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid004.html">PREVIOUS</a> ] &nbsp; [ <a href="grid006.html">NEXT</a> ]</p>
+</div> <!-- #outermost-stack -->
+</body>
+
+</html>
