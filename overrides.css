@@ -1,11 +1,15 @@
-/* ACB overrides to standard settings in exolve files */
+/* 
+Anatagony added css file to override standard 
+settings in the exolve-m.css file
+*/
 
+/* Make the annotation less like the clue text */
 .anno-text {
   font-style: normal;
   font-size: small;
   font-family: sans-serif;
 }
+/* minimual bolding  for pre-filled grid letters */
 .prefill {
-  /* fill: darkred; */
   font-weight: 600;
 }

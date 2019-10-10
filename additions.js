@@ -1,5 +1,6 @@
 /*
-ACB added 
+Antagony added file to provide hidden 'Parsing notes' panel 
+without editing the exolve-m.js file
 */
 
 function toggleShowParsingNotes() {
