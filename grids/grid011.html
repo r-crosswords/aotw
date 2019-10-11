@@ -11,11 +11,11 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v0.29 October 9 2019
+Version: Exolve v0.30 October 10 2019
 -->
 
-<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.29"/>
-<script src="../exolve-m.js?v0.29"></script>
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.30"/>
+<script src="../exolve-m.js?v0.30"></script>
 
 <link rel="stylesheet" type="text/css" href="../overrides.css"/>
 <script src="../additions.js"></script>
@@ -170,48 +170,18 @@ exolve-end
                 rows="2" cols="60"></textarea>
             </div>
           </div>
-          <div id="parsing-notes-list" style="display:none">
-            <ul>
-              <li>
-                <b>anagram:</b>
-                (FODDER)* {indicator}
-              </li>
-              <li>
-                <b>hidden answer:</b>
-                HA {indicator}
-              </li>
-              <li>
-                <b>homophone:</b>
-                Hom {indicator}
-              </li>
-              <li>
-                <b>double definition:</b>
-                DD
-              </li>
-              <li>
-                <b>cryptic definition:</b>
-                CD
-              </li>
-              <li>
-                <b>envelope (containing or contained):</b>
-                env. {indicator}
-              </li>
-              <li>
-                <b>reversal:</b>
-                rev. {indicator}
-              </li>
-            </ul>
-          </div>
           <a id="show-control-keys" href=""
-             title="Show/hide tools: list of control keys and scratch pad"
-             onclick="toggleShowControls();return false">Tools</a>
-          <a id="show-parsing-notes" href=""
-             title="Show/hide parsing notes key"
-             onclick="toggleShowParsingNotes();return false">Parsing</a>
-          <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
-          <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+            title="Show/hide tools: list of control keys and scratch pad"
+            onclick="toggleShowControls();return false">Tools</a>
+          <a id="report-bug"
+            href="https://github.com/viresh-ratnakar/exolve/issues/new">Report
+            bug</a>
+          <a id="exolve-link"
+            href="https://github.com/viresh-ratnakar/exolve">Exolve on
+            GitHub</a>
           <span id="copyright"></span>
         </div> <!-- #small-print -->
+        <hr/>
         <div id="questions" class="wide-box"></div> 
         <div id="submit-parent">
           <button id="submit" class="button" style="display:none"
@@ -219,19 +189,19 @@ exolve-end
         </div> <!-- submit-parent -->
         <div id="explanations" class="wide-box" style="display:none"></div>
       </div> <!-- #controls-etc -->
-      <!-- <br/>
-      <br/> -->
+      <br/>
+      <br/>
     </div> <!-- #grid-panel -->
     <div id="clues" class="flex-row">
       <div id="across-clues-panel" class="clues-box" style="display:none">
         <hr/>
-        <strong>Across</strong>
+        <b>Across</b>
         <table id="across"></table>
         <br/>
       </div> <!-- #across-clues-panel -->
       <div id="down-clues-panel" class="clues-box" style="display:none">
         <hr/>
-        <strong>Down</strong>
+        <b>Down</b>
         <table id="down"></table>
         <br/>
       </div> <!-- #down-clues-panel -->
@@ -241,8 +211,8 @@ exolve-end
         <br/>
       </div> <!-- #nodir-clues-panel -->
     </div> <!-- #clues -->
+    <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid010.html">PREVIOUS</a> ] &nbsp; [ NEXT ]</p>
   </div>
-  <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid010.html">PREVIOUS</a> ] &nbsp; [ NEXT ]</p>
 </div> <!-- #outermost-stack -->
 </body>
 
