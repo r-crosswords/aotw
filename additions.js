@@ -3,12 +3,12 @@
 
 const currentDocNum = 11 // Sets which doc is the end of the navigation chain
 
-// Inject custom HTML elements using the exolve hooked function customizePuzzle
+// Insert custom HTML elements using the exolve hooked function customizePuzzle
 function customizePuzzle() {
-  // Parsing key table
-  let toolsTable = document.getElementById('control-keys-list')
+  // Insert parsing key table
+  let toolsTable = document.getElementById('control-keys-list');
   if (!toolsTable) {
-    return
+    return;
   }
   toolsTable.insertAdjacentHTML(
     'afterend', `<div id="parsing-notes-list" style="display:none">
@@ -43,52 +43,63 @@ function customizePuzzle() {
                     </li>
                   </ul>
                 </div>`
-  )
+  );
 
-  // Parsing key link in the tools line
+  // Insert parsing key link in the tools line
   let toolsLink = document.getElementById('show-control-keys')
   if (!toolsLink) {
-    return
+    return;
   }
   toolsLink.insertAdjacentHTML(
     'afterend', `<a id="show-parsing-notes" href=""
                   title="Show/hide parsing notes key"
                   onclick="toggleShowParsingNotes();return false">Parsing</a>`
-  )
+  );
 
-  // Build the Navigation line -- e.g.
-  // <p>[ <a href="../ ">HOME</a> ] &nbsp; [ <a href="grid001.html">PREVIOUS</a> ] &nbsp; [ <a href="grid003.html">NEXT</a> ]</p>
+  // Build the Navigation bar and position it just below the outer stack, 
+  // so it's always at the bottom-left of the page
   let docNum = (getDocNum());
   if (docNum > 0) {
     let stackDiv = document.getElementById('outermost-stack');
     if (!stackDiv) {
       return;
     }
-    var navLine = '<p>[ <a href="../">HOME</a> ] &nbsp; [ ';
+    
+    // Initialize the string with the Home button
+    var navLine = '<div id="nav-bar"><a href="../"><button class="nav-button">Home</button></a> &nbsp; ';
+
+    // Previous button
     if (docNum > 1) {
       navLine = navLine.concat('<a href="grid', zeroPad(docNum - 1, 3), '.html">');
     }
-    navLine = navLine.concat('PREVIOUS');
+    navLine = navLine.concat('<button class="nav-button"');
+    if (docNum == 1) {
+      navLine = navLine.concat(' disabled');
+    }
+    navLine=navLine.concat('>Previous</button>');
     if (docNum > 1) {
       navLine = navLine.concat('</a>');
     }
-    navLine = navLine.concat(' ] &nbsp; [ ');
+    navLine = navLine.concat(' &nbsp; ');
+    
+    // Next button
     if (docNum < currentDocNum) {
       navLine = navLine.concat('<a href="grid', zeroPad(docNum + 1, 3), '.html">');
     }
-    navLine = navLine.concat('NEXT');
+    navLine = navLine.concat('<button class="nav-button"');
+    if (docNum == currentDocNum) {
+      navLine = navLine.concat(' disabled');
+    }
+    navLine = navLine.concat('>Next</button>');
     if (docNum < currentDocNum) {
       navLine = navLine.concat('</a>');
     }
-    navLine = navLine.concat(' ]</p>');
+    navLine = navLine.concat('</div>')
     stackDiv.insertAdjacentHTML('afterend', navLine);
   }
 }
 
-function zeroPad(num, places) {
-  return String(num).padStart(places, '0')
-}
-
+// Get the document number from its file name, which should be formatted 'grid###.html
 function getDocNum() {
   var segments = window.location.pathname.split('/');
   var toDelete = [];
@@ -100,14 +111,19 @@ function getDocNum() {
   for (var i = 0; i < toDelete.length; i++) {
       segments.splice(i, 1);
   }
-  var filename = segments[segments.length - 1];
-  // file format should always be "grid###.html", so chars 5-7 should be its number
+  var filename = segments[segments.length - 1]; //Document's name
+  // Chars 5-7 should be the number part of the doc's name
   var docNum = parseInt(filename.substring(4,8), 10);
   if (Number.isInteger(docNum)) {
     return docNum;
   } else {
     return 0;
   }
+}
+
+// Pad an integer with leading zeroes
+function zeroPad(num, places) {
+  return String(num).padStart(places, '0')
 }
 
 // Toggle the parsing key's visibility

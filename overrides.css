@@ -1,6 +1,6 @@
 /* 
-Anatagony added css file to override standard 
-settings in the exolve-m.css file
+Antagony added css file to override standard settings in exolve-m.css 
+and add any other styling as required
 */
 
 /* Make the annotation less like the clue text */
@@ -12,4 +12,28 @@ settings in the exolve-m.css file
 /* minimual bolding  for pre-filled grid letters */
 .prefill {
   font-weight: 600;
+}
+
+/* Navigation bar buttons (not part of Exolve) */
+.nav-button {
+  background-color: #eeffee;
+  border: 1px solid #d6ffd6;
+  outline: none;
+  color: darkgreen;
+  padding: 4px 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+.nav-button:hover {
+  background-color: #d6ffd6;
+  cursor: pointer;
+}
+.nav-button:disabled {
+  color: gray;
+  pointer-events: none;
 }
