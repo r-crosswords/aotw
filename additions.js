@@ -46,7 +46,7 @@ function customizePuzzle() {
   );
 
   // Insert parsing key link in the tools line
-  let toolsLink = document.getElementById('show-control-keys')
+  let toolsLink = document.getElementById('show-control-keys');
   if (!toolsLink) {
     return;
   }
@@ -56,7 +56,7 @@ function customizePuzzle() {
                   onclick="toggleShowParsingNotes();return false">Parsing</a>`
   );
 
-  // Build the Navigation bar and position it just below the outer stack, 
+  // Build the Navigation bar and position it just below the outer stack,
   // so it's always at the bottom-left of the page
   let docNum = (getDocNum());
   if (docNum > 0) {
@@ -64,38 +64,35 @@ function customizePuzzle() {
     if (!stackDiv) {
       return;
     }
-    
-    // Initialize the string with the Home button
-    var navLine = '<div id="nav-bar"><a href="../"><button class="nav-button">Home</button></a> &nbsp; ';
-
-    // Previous button
+    // Home button
+    let homeButton = '<a href="../">' +
+                       '<button class="nav-button">Home</button>' +
+                     '</a>';
+    // Previous button -- disabled if it's the first grid in the nav chain
+    let prevButton = '<button class="nav-button"' + 
+                     (docNum === 1 ? ' disabled' : '') + 
+                     '>Previous</button>';
     if (docNum > 1) {
-      navLine = navLine.concat('<a href="grid', zeroPad(docNum - 1, 3), '.html">');
+      prevButton = '<a href="grid' + zeroPad(docNum - 1, 3) + '.html">' +
+                     prevButton +
+                   '</a>';
     }
-    navLine = navLine.concat('<button class="nav-button"');
-    if (docNum == 1) {
-      navLine = navLine.concat(' disabled');
-    }
-    navLine=navLine.concat('>Previous</button>');
-    if (docNum > 1) {
-      navLine = navLine.concat('</a>');
-    }
-    navLine = navLine.concat(' &nbsp; ');
-    
-    // Next button
+    // Next button -- disabled if it's the last (ongoing) grid in the nav chain
+    let nextButton = '<button class="nav-button"' +
+                     (docNum === currentDocNum ? ' disabled' : '') +
+                     '>Next</button>';
     if (docNum < currentDocNum) {
-      navLine = navLine.concat('<a href="grid', zeroPad(docNum + 1, 3), '.html">');
+      nextButton = '<a href="grid' + zeroPad(docNum + 1, 3) + '.html">' +
+                     nextButton +
+                   '</a>';
     }
-    navLine = navLine.concat('<button class="nav-button"');
-    if (docNum == currentDocNum) {
-      navLine = navLine.concat(' disabled');
-    }
-    navLine = navLine.concat('>Next</button>');
-    if (docNum < currentDocNum) {
-      navLine = navLine.concat('</a>');
-    }
-    navLine = navLine.concat('</div>')
-    stackDiv.insertAdjacentHTML('afterend', navLine);
+    // Nav bar, height set to lift it above the hover line
+    let navBar = '<div id="nav-bar" style="height: 55px">' +
+                    homeButton + ' &nbsp; ' +
+                    prevButton + ' &nbsp; ' +
+                    nextButton +
+                  '</div>';
+    stackDiv.insertAdjacentHTML('afterend', navBar);
   }
 }
 
@@ -103,12 +100,13 @@ function customizePuzzle() {
 function getDocNum() {
   var segments = window.location.pathname.split('/');
   var toDelete = [];
-  for (var i = 0; i < segments.length; i++) {
+  var i = 0;
+  for (i = 0; i < segments.length; i += 1) {
       if (segments[i].length < 1) {
           toDelete.push(i);
       }
   }
-  for (var i = 0; i < toDelete.length; i++) {
+  for (i = 0; i < toDelete.length; i += 1) {
       segments.splice(i, 1);
   }
   var filename = segments[segments.length - 1]; //Document's name
@@ -123,15 +121,15 @@ function getDocNum() {
 
 // Pad an integer with leading zeroes
 function zeroPad(num, places) {
-  return String(num).padStart(places, '0')
+  return String(num).padStart(places, '0');
 }
 
 // Toggle the parsing key's visibility
 function toggleShowParsingNotes() {
-  let e = document.getElementById('parsing-notes-list')
-  if (e.style.display == 'none') {
-    e.style.display = ''
+  let e = document.getElementById('parsing-notes-list');
+  if (e.style.display === 'none') {
+    e.style.display = '';
   } else {
-    e.style.display = 'none'
+    e.style.display = 'none';
   }
 }
