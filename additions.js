@@ -87,7 +87,7 @@ function customizePuzzle() {
                    '</a>';
     }
     // Nav bar, height set to lift it above the hover line
-    let navBar = '<div id="nav-bar" style="height: 55px">' +
+    let navBar = '<div id="nav-bar" style="height: 55px;">' +
                     homeButton + ' &nbsp; ' +
                     prevButton + ' &nbsp; ' +
                     nextButton +
