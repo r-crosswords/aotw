@@ -58,7 +58,7 @@ function customizePuzzle() {
 
   // Build the Navigation bar and position it just below the outer stack,
   // so it's always at the bottom-left of the page
-  let docInfo = (getDocInfo());
+  let docInfo = getDocInfo();
   let docName = docInfo.docName;
   let docNum = docInfo.docNum;
   if (docNum > 0) {
