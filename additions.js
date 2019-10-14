@@ -106,9 +106,9 @@ function getDocInfo() {
   // Remove everything from the last slash back, so it's just the file name
   fileName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length);
   // Remove the .html extension
-  fileName = fileName.substring(0,fileName.length -5);
+  fileName = fileName.substring(0, fileName.length - 5);
   // Everything up to the last 3 characters should be the doc's name
-  let docName = fileName.substr(0,fileName.length-3);
+  let docName = fileName.substr(0, fileName.length - 3);
   // The last 3 characters should be the doc's number
   let docNum = parseInt(fileName.substr(fileName.length - 3, 3), 10);
   // Return both parts as a destructured object
