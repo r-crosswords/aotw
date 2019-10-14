@@ -1,7 +1,7 @@
 // Antagony added file to provide hidden 'Parsing notes' panel 
 // without affecting the exolve files
 
-const currentDocNum = 11 // The currently active ongoing grid, which marks the end of the navigation chain
+const currentDocNum = 11 // Sets which doc is the end of the navigation chain
 
 // Insert custom HTML elements using the exolve hooked function customizePuzzle
 function customizePuzzle() {
@@ -58,7 +58,9 @@ function customizePuzzle() {
 
   // Build the Navigation bar and position it just below the outer stack,
   // so it's always at the bottom-left of the page
-  let docNum = (getDocNum());
+  let docInfo = (getDocInfo());
+  let docName = docInfo.docName;
+  let docNum = docInfo.docNum;
   if (docNum > 0) {
     let stackDiv = document.getElementById('outermost-stack');
     if (!stackDiv) {
@@ -73,49 +75,47 @@ function customizePuzzle() {
                      (docNum === 1 ? ' disabled' : '') + 
                      '>Previous</button>';
     if (docNum > 1) {
-      prevButton = '<a href="grid' + zeroPad(docNum - 1, 3) + '.html">' +
+      prevButton = '<a href="' + docName + zeroPad(docNum - 1, 3) + '.html">' +
                      prevButton +
                    '</a>';
     }
     // Next button -- disabled if it's the last (ongoing) grid in the nav chain
     let nextButton = '<button class="nav-button"' +
-                     (docNum === currentDocNum ? ' disabled' : '') +
+                     (docNum >= currentDocNum ? ' disabled' : '') +
                      '>Next</button>';
     if (docNum < currentDocNum) {
-      nextButton = '<a href="grid' + zeroPad(docNum + 1, 3) + '.html">' +
+      nextButton = '<a href="' + docName + zeroPad(docNum + 1, 3) + '.html">' +
                      nextButton +
                    '</a>';
     }
     // Nav bar, height set to lift it above the hover line
-    let navBar = '<div id="nav-bar" style="height: 55px;">' +
+    let navBar = '<div id="nav-bar" style="height: 55px">' +
                     homeButton + ' &nbsp; ' +
                     prevButton + ' &nbsp; ' +
                     nextButton +
-                  '</div>';
+                 '</div>';
     stackDiv.insertAdjacentHTML('afterend', navBar);
   }
 }
 
-// Get the document number from its file name, which should be formatted 'grid###.html
-function getDocNum() {
-  var segments = window.location.pathname.split('/');
-  var toDelete = [];
-  var i = 0;
-  for (i = 0; i < segments.length; i += 1) {
-      if (segments[i].length < 1) {
-          toDelete.push(i);
-      }
-  }
-  for (i = 0; i < toDelete.length; i += 1) {
-      segments.splice(i, 1);
-  }
-  var filename = segments[segments.length - 1]; //Document's name
-  // Chars 5-7 should be the number part of the doc's name
-  var docNum = parseInt(filename.substring(4,8), 10);
+// Get the document's name and number from its file name, 
+// which should be formatted <name>###.html
+function getDocInfo() {
+  // Get the full path
+  let fileName = window.location.pathname; 
+  // Remove everything from the last slash back, so it's just the file name
+  fileName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length);
+  // Remove the .html extension
+  fileName = fileName.substring(0,fileName.length -5);
+  // Everything up to the last 3 characters should be the doc's name
+  let docName = fileName.substr(0,fileName.length-3);
+  // The last 3 characters should be the doc's number
+  let docNum = parseInt(fileName.substr(fileName.length - 3, 3), 10);
+  // Return both parts as a destructured object
   if (Number.isInteger(docNum)) {
-    return docNum;
+    return {docName, docNum};
   } else {
-    return 0;
+    return {docName: '', docNum: 0};
   }
 }
 
