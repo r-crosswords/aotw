@@ -1,7 +1,7 @@
 // Antagony added file to provide hidden 'Parsing notes' panel 
 // without affecting the exolve files
 
-const currentDocNum = 11 // Sets which doc is the end of the navigation chain
+const currentDocNum = 2 // Sets which doc is the end of the navigation chain
 
 // Insert custom HTML elements using the exolve hooked function customizePuzzle
 function customizePuzzle() {
@@ -58,9 +58,10 @@ function customizePuzzle() {
 
   // Build the Navigation bar and position it just below the outer stack,
   // so it's always at the bottom-left of the page
-  let docInfo = getDocInfo();
+  let docInfo = (getDocInfo());
   let docName = docInfo.docName;
   let docNum = docInfo.docNum;
+  let extension = docInfo.extension;
   if (docNum > 0) {
     let stackDiv = document.getElementById('outermost-stack');
     if (!stackDiv) {
@@ -75,7 +76,7 @@ function customizePuzzle() {
                      (docNum === 1 ? ' disabled' : '') + 
                      '>Previous</button>';
     if (docNum > 1) {
-      prevButton = '<a href="' + docName + zeroPad(docNum - 1, 3) + '.html">' +
+      prevButton = '<a href="' + docName + zeroPad(docNum - 1, 3) + extension + '">' +
                      prevButton +
                    '</a>';
     }
@@ -84,7 +85,7 @@ function customizePuzzle() {
                      (docNum >= currentDocNum ? ' disabled' : '') +
                      '>Next</button>';
     if (docNum < currentDocNum) {
-      nextButton = '<a href="' + docName + zeroPad(docNum + 1, 3) + '.html">' +
+      nextButton = '<a href="' + docName + zeroPad(docNum + 1, 3) + extension + '">' +
                      nextButton +
                    '</a>';
     }
@@ -106,16 +107,21 @@ function getDocInfo() {
   // Remove everything from the last slash back, so it's just the file name
   fileName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length);
   // Remove the .html extension
-  fileName = fileName.substring(0, fileName.length - 5);
+  let extension = '.html'
+  if (fileName.substr(fileName.length -5, 5) === extension) {
+    fileName = fileName.substring(0, fileName.length - 5);
+  } else {
+    extension = ''; // No extension used -- as with DropPages  
+  }
   // Everything up to the last 3 characters should be the doc's name
-  let docName = fileName.substr(0, fileName.length - 3);
+  let docName = fileName.substr(0,fileName.length-3);
   // The last 3 characters should be the doc's number
   let docNum = parseInt(fileName.substr(fileName.length - 3, 3), 10);
   // Return both parts as a destructured object
   if (Number.isInteger(docNum)) {
-    return {docName, docNum};
+    return {docName, docNum, extension};
   } else {
-    return {docName: '', docNum: 0};
+    return {docName: '', docNum: 0, extension: ''};
   }
 }
 
