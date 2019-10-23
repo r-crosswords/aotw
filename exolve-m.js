@@ -25,7 +25,7 @@ The latest code and documentation for exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 */
 
-const VERSION = 'Exolve v0.32 October 14 2019'
+const VERSION = 'Exolve v0.36 October 22 2019'
 
 // ------ Begin globals.
 
@@ -790,6 +790,7 @@ function parseEnum(clueLine) {
 // Parse a clue label from the start of clueLine.
 // Return an object with the following properties:
 // error
+// isFiller
 // clueLabel
 // isNonNum
 // dir
@@ -809,20 +810,20 @@ function parseClueLabel(clueLine) {
   } else {
     let bracOpenParts = clueLine.match(/^\s*\[/)
     if (!bracOpenParts || bracOpenParts.length != 1) {
-      parse.error = 'Missing leading [ in non-numeric clue label in ' + clueLine
-      return
+      parse.isFiller = true
+      return parse
     }
     let pastBracOpen = bracOpenParts[0].length
     let bracEnd = clueLine.indexOf(']')
     if (bracEnd < 0) {
       parse.error = 'Missing matching ] in clue label in ' + clueLine
-      return
+      return parse
     }
     parse.clueLabel = clueLine.substring(pastBracOpen, bracEnd).trim()
     let temp = parseInt(parse.clueLabel)
     if (!isNaN(temp)) {
       parse.error = 'Numeric label not allowed in []: ' + clueLabel
-      return
+      return parse
     }
     if (parse.clueLabel.charAt(parse.clueLabel.length - 1) == '.') {
        // strip trailing period
@@ -866,6 +867,8 @@ function parseClueLabel(clueLine) {
 // wordEndAfter[] (0-based indices)
 // startCell[] optional, used in diagramless+unsolved and nonth -numeric labels
 // anno (the part after the enum, if present)
+// isFiller
+// error
 function parseClue(dir, clueLine) {
   let parse = {};
   clueLine = clueLine.trim()
@@ -879,12 +882,16 @@ function parseClue(dir, clueLine) {
 
   let clueLabelParse = parseClueLabel(clueLine)
   if (clueLabelParse.error) {
-    addError(clueLabelParse.error)
-    return
+    parse.error = clueLabelParse.error
+    return parse
+  }
+  if (clueLabelParse.isFiller) {
+    parse.isFiller = true
+    return parse
   }
   if (clueLabelParse.dir && clueLabelParse.dir != dir) {
-    addError('Explicit dir ' + clueLabelParse.dir + ' does not match ' + dir + ' in clue: ' + clueLine)
-    return
+    parse.error = 'Explicit dir ' + clueLabelParse.dir + ' does not match ' + dir + ' in clue: ' + clueLine
+    return parse
   }
   parse.clueLabel = clueLabelParse.clueLabel
   parse.isNonNum = clueLabelParse.isNonNum
@@ -904,8 +911,8 @@ function parseClue(dir, clueLine) {
   while (clueLabelParse.hasChildren) {
     clueLabelParse = parseClueLabel(clueLine)
     if (clueLabelParse.error) {
-      addError('Error in linked clue number/label: ' + clueLabelParse.error)
-      return
+      parse.error = 'Error in linked clue number/label: ' + clueLabelParse.error
+      return parse
     }
     parse.children.push(clueLabelParse)
     clueLine = clueLine.substr(clueLabelParse.skip)
@@ -941,12 +948,21 @@ function parseClueLists() {
       continue
     }
     let prev = null
+    let filler = ''
     for (let l = first; l <= last; l++) {
       let clueLine = puzzleTextLines[l].trim();
       if (clueLine == '') {
         continue;
       }
       let clueParse = parseClue(clueDirection, clueLine)
+      if (clueParse.error) {
+        addError('Clue parsing error in: ' + clueLine + ': ' + clueParse.error);
+        return
+      }
+      if (clueParse.isFiller) {
+        filler = filler + clueLine + '\n'
+        continue
+      }
       if (!clueParse.clueIndex) {
         addError('Could not parse clue: ' + clueLine);
         return
@@ -994,18 +1010,19 @@ function parseClueLists() {
         clues[prev].next = clueParse.clueIndex
       }
       prev = clueParse.clueIndex
+      if (filler) {
+        clues[clueParse.clueIndex].filler = filler
+        filler = ''
+      }
+
+      if (clueParse.clue) {
+        allClueIndices.push(clueParse.clueIndex) 
+      }
     }
-  }
-  for (let clueIndex in clues) {
-    if (!clues.hasOwnProperty(clueIndex)) {
-      continue
+    if (filler) {
+      addError('Filler line should not be at the end: ' + filler)
+      return
     }
-    if (!clues[clueIndex].clue) {
-      // A clue whose existence was inferred from the grid, but no actual
-      // clue was provided, hopefully deliberately.
-      continue
-    }
-    allClueIndices.push(clueIndex) 
   }
 }
 
@@ -1397,6 +1414,15 @@ function displayClues() {
     } else {
       addError('Unexpected clue direction ' + clues[clueIndex].clueDirection + ' in ' + clueIndex)
       return
+    }
+    if (clues[clueIndex].filler) {
+      let tr = document.createElement('tr')
+      let col = document.createElement('td')
+      col.setAttributeNS(null, 'colspan', '2');
+      col.setAttributeNS(null, 'class', 'filler');
+      col.innerHTML = clues[clueIndex].filler
+      tr.appendChild(col)
+      table.appendChild(tr)
     }
     let tr = document.createElement('tr')
     let col1 = document.createElement('td')
@@ -2377,36 +2403,88 @@ function toggleNinas() {
   }
 }
 
+function clearCell(row, col) {
+  let oldLetter = grid[row][col].currentLetter
+  if (oldLetter != '') {
+    grid[row][col].currentLetter = ''
+    grid[row][col].textNode.nodeValue = ''
+    if (row == currentRow && col == currentCol) {
+      gridInput.value = ''
+    }
+  }
+  if (oldLetter == '1') {
+    let symRow = gridHeight - 1 - row
+    let symCol = gridWidth - 1 - col
+    if (grid[symRow][symCol].isDiagramless) {
+      grid[symRow][symCol].currentLetter = ''
+      grid[symRow][symCol].textNode.nodeValue = ''
+    }
+  }
+}
+
+function isFull(clueIndex) {
+  if (!clues[clueIndex] || !clues[clueIndex].cells ||
+      clues[clueIndex].cells.length < 1) {
+    return false;
+  }
+  for (let x of clues[clueIndex].cells) {
+    let row = x[0]
+    let col = x[1]
+    if (grid[row][col].prefill) {
+      continue
+    }
+    if (grid[row][col].currentLetter == '') {
+      return false;
+    }
+  }
+  return true;
+}
+
 function clearCurrent() {
+  let clueIndices = []
+  if (currentClueIndex) {
+    clueIndices = getAllLinkedClueIndices(currentClueIndex)
+    for (let clueIndex of clueIndices) {
+      if (clues[clueIndex].annoSpan) {
+        clues[clueIndex].annoSpan.style.display = 'none'
+      }
+    }
+  }
+  let fullCrossers = []
+  let others = []
   for (let x of activeCells) {
     let row = x[0]
     let col = x[1]
     if (grid[row][col].prefill) {
       continue
     }
-    let oldLetter = grid[row][col].currentLetter
-    if (oldLetter != '') {
-      grid[row][col].currentLetter = ''
-      grid[row][col].textNode.nodeValue = ''
-      if (row == currentRow && col == currentCol) {
-        gridInput.value = ''
-      }
+    if (grid[row][col].currentLetter == '') {
+      continue
     }
-    if (oldLetter == '1') {
-      let symRow = gridHeight - 1 - row
-      let symCol = gridWidth - 1 - col
-      if (grid[symRow][symCol].isDiagramless) {
-        grid[symRow][symCol].currentLetter = ''
-        grid[symRow][symCol].textNode.nodeValue = ''
+    if (grid[row][col].acrossClueLabel && grid[row][col].downClueLabel) {
+      let across = 'A' + grid[row][col].acrossClueLabel
+      let down = 'D' + grid[row][col].downClueLabel
+      let crosser = ''
+      if (clueIndices.includes(across) && !clueIndices.includes(down)) {
+        crosser = down
+      } else if (!clueIndices.includes(across) && clueIndices.includes(down)) {
+        crosser = across
       }
+      if (crosser && isFull(crosser)) {
+        fullCrossers.push([row, col])
+      } else {
+        others.push([row, col])
+      }
+    } else {
+      others.push([row, col])
     }
   }
-  if (currentClueIndex) {
-    let clueIndices = getAllLinkedClueIndices(currentClueIndex)
-    for (let clueIndex of clueIndices) {
-      if (clues[clueIndex].annoSpan) {
-        clues[clueIndex].annoSpan.style.display = 'none'
-      }
+  for (let rc of others) {
+    clearCell(rc[0], rc[1])
+  }
+  if (others.length == 0) {
+    for (let rc of fullCrossers) {
+      clearCell(rc[0], rc[1])
     }
   }
   updateAndSaveState()
