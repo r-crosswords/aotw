@@ -25,7 +25,7 @@ The latest code and documentation for exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 */
 
-const VERSION = 'Exolve v0.36 October 22 2019'
+const VERSION = 'Exolve v0.38 November 13 2019'
 
 // ------ Begin globals.
 
@@ -71,7 +71,7 @@ let hasNodirClues = false
 // Clues labeled non-numerically (like [A] a clue...) use this to create a
 // unique clueIndex.
 let nextNonNumId = 1
-let nonNumClueIndices = {}
+let offNumClueIndices = {}
 
 const SQUARE_DIM = 31
 const SQUARE_DIM_BY2 = 16
@@ -94,7 +94,7 @@ let revelationList = []
 
 let currentRow = -1
 let currentCol = -1
-let currentDirectionIsAcross = true
+let currentDir = 'A'
 let currentClueIndex = null
 let activeCells = [];
 let activeClues = [];
@@ -276,7 +276,7 @@ function parseColour(s) {
 // last ')'.
 function parseQuestion(s) {
   let enumParse = parseEnum(s)
-  let inputLen = enumParse.len + enumParse.hyphenAfter.length +
+  let inputLen = enumParse.enumLen + enumParse.hyphenAfter.length +
                  enumParse.wordEndAfter.length
 
   let afterEnum = enumParse.afterEnum
@@ -337,7 +337,7 @@ function parseQuestion(s) {
     let answerValue = ''
     let wordEndIndex = 0
     let hyphenIndex = 0
-    for (let i = 0; i < enumParse.len; i++) {
+    for (let i = 0; i < enumParse.enumLen; i++) {
       answerValue = answerValue + '?'
       if (wordEndIndex < enumParse.wordEndAfter.length &&
               i == enumParse.wordEndAfter[wordEndIndex]) {
@@ -731,13 +731,13 @@ function parseCellLocation(s) {
 
 // Parse an enum like (4) or (4,5), or (5-2,4).
 // Return an object with the following properties:
-// len
+// enumLen
 // hyphenAfter[] (0-based indices)
 // wordEndAfter[] (0-based indices)
 // afterEnum index after enum
 function parseEnum(clueLine) {
   let parse = {
-    'len': 0,
+    'enumLen': 0,
     'wordEndAfter': [],
     'hyphenAfter': [],
     'afterEnum': clueLine.length,
@@ -766,14 +766,14 @@ function parseEnum(clueLine) {
   let nextPart
   while (enumLeft && (nextPart = parseInt(enumLeft)) && !isNaN(nextPart) &&
          nextPart > 0) {
-    parse.len = parse.len + nextPart
+    parse.enumLen = parse.enumLen + nextPart
     enumLeft = enumLeft.replace(/\s*\d+\s*/, '')
     let nextSymbol = enumLeft.substr(0, 1)
     if (nextSymbol == '-') {
-      parse.hyphenAfter.push(parse.len - 1)
+      parse.hyphenAfter.push(parse.enumLen - 1)
       enumLeft = enumLeft.substr(1)
     } else if (nextSymbol == ',') {
-      parse.wordEndAfter.push(parse.len - 1)
+      parse.wordEndAfter.push(parse.enumLen - 1)
       enumLeft = enumLeft.substr(1)
     } else if (nextSymbol == '\'') {
       enumLeft = enumLeft.substr(1)
@@ -792,7 +792,7 @@ function parseEnum(clueLine) {
 // error
 // isFiller
 // clueLabel
-// isNonNum
+// isOffNum
 // dir
 // hasChildren
 // skip
@@ -805,7 +805,7 @@ function parseClueLabel(clueLine) {
   if (numberParts && numberParts.length == 1) {
     let clueNum = parseInt(numberParts[0])
     parse.clueLabel = '' + clueNum
-    parse.isNonNum = false
+    parse.isOffNum = false
     parse.skip = numberParts[0].length
   } else {
     let bracOpenParts = clueLine.match(/^\s*\[/)
@@ -820,16 +820,11 @@ function parseClueLabel(clueLine) {
       return parse
     }
     parse.clueLabel = clueLine.substring(pastBracOpen, bracEnd).trim()
-    let temp = parseInt(parse.clueLabel)
-    if (!isNaN(temp)) {
-      parse.error = 'Numeric label not allowed in []: ' + clueLabel
-      return parse
-    }
     if (parse.clueLabel.charAt(parse.clueLabel.length - 1) == '.') {
        // strip trailing period
        parse.clueLabel = parse.clueLabel.substr(0, parse.clueLabel.length - 1).trim()
     }
-    parse.isNonNum = true
+    parse.isOffNum = true
     parse.skip = bracEnd + 1
   }
   clueLine = clueLine.substr(parse.skip)
@@ -859,25 +854,37 @@ function parseClueLabel(clueLine) {
 // Return an object with the following properties:
 // clueIndex
 // clueLabel
-// isNonNum
+// isOffNum
 // children[]  (raw parseClueLabel() resutls, not yet clueIndices)
 // clue
-// len
+// enumLen
 // hyphenAfter[] (0-based indices)
 // wordEndAfter[] (0-based indices)
-// startCell[] optional, used in diagramless+unsolved and nonth -numeric labels
+// startCell optional, used in diagramless+unsolved and off-numeric labels
+// cells[] optionally filled, if all clue cells are specified in the clue
 // anno (the part after the enum, if present)
 // isFiller
 // error
 function parseClue(dir, clueLine) {
-  let parse = {};
+  let parse = {'cells': []};
   clueLine = clueLine.trim()
-  if (clueLine.indexOf('#') == 0) {
-    let startCell = parseCellLocation(clueLine.substr(1));
-    if (startCell) {
-      parse.startCell = startCell
+  let numCellsGiven = 0
+  while (clueLine.indexOf('#') == 0) {
+    let cell = parseCellLocation(clueLine.substr(1));
+    if (!cell) {
+      break
+    }
+    if (numCellsGiven == 0) {
+      parse.startCell = cell
     }  
     clueLine = clueLine.replace(/^#[a-z][0-9]*\s*/, '')
+    numCellsGiven += 1
+    if (numCellsGiven == 2) {
+      parse.cells.push(parse.startCell)
+      parse.cells.push(cell)
+    } else if (numCellsGiven > 2) {
+      parse.cells.push(cell)
+    }
   }
 
   let clueLabelParse = parseClueLabel(clueLine)
@@ -894,17 +901,38 @@ function parseClue(dir, clueLine) {
     return parse
   }
   parse.clueLabel = clueLabelParse.clueLabel
-  parse.isNonNum = clueLabelParse.isNonNum
+  parse.isOffNum = clueLabelParse.isOffNum
   let clueIndex = dir + parse.clueLabel
-  if (parse.isNonNum) {
-    let nonNumIndex = dir + '#' + (nextNonNumId++)
-    if (!nonNumClueIndices[parse.clueLabel]) {
-      nonNumClueIndices[parse.clueLabel] = []
+  if (parse.isOffNum) {
+    let offNumIndex = dir + '#' + (nextNonNumId++)
+    if (!offNumClueIndices[parse.clueLabel]) {
+      offNumClueIndices[parse.clueLabel] = []
     }
-    nonNumClueIndices[parse.clueLabel].push(nonNumIndex)
-    clueIndex = nonNumIndex
+    offNumClueIndices[parse.clueLabel].push(offNumIndex)
+    clueIndex = offNumIndex
   }
   parse.clueIndex = clueIndex
+
+  if (parse.cells.length > 0) {
+    if (dir != 'X') {
+      parse.error = 'Cells listed in non-nodir clue: ' + clueLine
+      return parse
+    }
+    let prev = []
+    for (let c of parse.cells) {
+      if (!grid[c[0]][c[1]].nodirClues) {
+        grid[c[0]][c[1]].nodirClues = []
+      }
+      grid[c[0]][c[1]].nodirClues.push(clueIndex)
+      if (prev.length > 0) {
+        grid[prev[0]][prev[1]]['successor' + clueIndex] = {
+          'cell': c,
+          'direction': clueIndex
+        }
+      }
+      prev = c
+    }
+  }
 
   clueLine = clueLine.substr(clueLabelParse.skip)
   parse.children = []
@@ -919,7 +947,7 @@ function parseClue(dir, clueLine) {
   }
 
   let enumParse = parseEnum(clueLine)
-  parse.len = enumParse.len
+  parse.enumLen = enumParse.enumLen
   parse.hyphenAfter = enumParse.hyphenAfter
   parse.wordEndAfter = enumParse.wordEndAfter
   parse.clue = clueLine.substr(0, enumParse.afterEnum).trim()
@@ -949,9 +977,14 @@ function parseClueLists() {
     }
     let prev = null
     let filler = ''
+    let startNewTable = false
     for (let l = first; l <= last; l++) {
       let clueLine = puzzleTextLines[l].trim();
       if (clueLine == '') {
+        continue;
+      }
+      if (clueLine.substr(0, 3) == '---') {
+        startNewTable = true
         continue;
       }
       let clueParse = parseClue(clueDirection, clueLine)
@@ -972,11 +1005,12 @@ function parseClueLists() {
         return
       }
       if (!clues[clueParse.clueIndex]) {
-        clues[clueParse.clueIndex] =  {'cells': []}
+        clues[clueParse.clueIndex] =  {}
       }
+      clues[clueParse.clueIndex].cells = clueParse.cells
       clues[clueParse.clueIndex].clue = clueParse.clue
       clues[clueParse.clueIndex].clueLabel = clueParse.clueLabel
-      clues[clueParse.clueIndex].isNonNum = clueParse.isNonNum
+      clues[clueParse.clueIndex].isOffNum = clueParse.isOffNum
       clues[clueParse.clueIndex].displayLabel = clueParse.clueLabel
       clues[clueParse.clueIndex].clueDirection = clueDirection
       clues[clueParse.clueIndex].fullDisplayLabel = clueParse.clueLabel
@@ -986,7 +1020,7 @@ function parseClueLists() {
       }
       clues[clueParse.clueIndex].children = clueParse.children
       clues[clueParse.clueIndex].childrenClueIndices = []
-      clues[clueParse.clueIndex].len = clueParse.len
+      clues[clueParse.clueIndex].enumLen = clueParse.enumLen
       clues[clueParse.clueIndex].hyphenAfter = clueParse.hyphenAfter
       clues[clueParse.clueIndex].wordEndAfter = clueParse.wordEndAfter
       clues[clueParse.clueIndex].anno = clueParse.anno
@@ -1013,6 +1047,10 @@ function parseClueLists() {
       if (filler) {
         clues[clueParse.clueIndex].filler = filler
         filler = ''
+      }
+      if (startNewTable) {
+        clues[clueParse.clueIndex].startNewTable = true
+        startNewTable = false
       }
 
       if (clueParse.clue) {
@@ -1053,12 +1091,12 @@ function setClueMemberships() {
         clueIndex = 'X' + clueLabel
       }
       if (!clues[clueIndex]) {
-        if (!nonNumClueIndices[clueLabel]) {
+        if (!offNumClueIndices[clueLabel]) {
           clueLabel = ''
           continue
         }
         clueIndex = ''
-        for (ci of nonNumClueIndices[clueLabel]) {
+        for (ci of offNumClueIndices[clueLabel]) {
           if (ci.charAt(0) == 'A' || ci.charAt(0) == 'X') {
             clueIndex = ci
             break
@@ -1096,12 +1134,12 @@ function setClueMemberships() {
         clueIndex = 'X' + clueLabel
       }
       if (!clues[clueIndex]) {
-        if (!nonNumClueIndices[clueLabel]) {
+        if (!offNumClueIndices[clueLabel]) {
           clueLabel = ''
           continue
         }
         clueIndex = ''
-        for (ci of nonNumClueIndices[clueLabel]) {
+        for (ci of offNumClueIndices[clueLabel]) {
           if (ci.charAt(0) == 'D' || ci.charAt(0) == 'X') {
             clueIndex = ci
             break
@@ -1116,8 +1154,7 @@ function setClueMemberships() {
     }
   }
   for (let clueIndex of allClueIndices) {
-    if (!clues[clueIndex].cells || !clues[clueIndex].len ||
-        !clues[clueIndex].cells.length) {
+    if (!clues[clueIndex].cells || !clues[clueIndex].cells.length) {
       orphanClueIndices.push(clueIndex) 
     }
   }
@@ -1134,14 +1171,14 @@ function processClueChildren() {
       continue
     }
     // Process children
-    // We also need to note the successor of he last cell from the parent
+    // We also need to note the successor of the last cell from the parent
     // to the first child, and then from the first child to the next, etc.
     let lastRowCol = null
     if (clue.cells.length > 0) {
       lastRowCol = clue.cells[clue.cells.length - 1]
       // If we do not know the enum of this clue (likely a diagramless puzzle),
       // do not set successors.
-      if (!clue.len || clue.len <= 0) {
+      if (!clue.enumLen || clue.enumLen <= 0) {
         lastRowCol = null
       }
     }
@@ -1159,7 +1196,7 @@ function processClueChildren() {
       // The direction could also be explicitly specified with a 'd' or 'a'
       // suffix.
       let childIndex = clue.clueDirection + child.clueLabel
-      if (!child.isNonNum) {
+      if (!child.isOffNum) {
         if (!clues[childIndex]) {
           for (let otherDir of allDirections) {
             if (otherDir == clue.clueDirection) {
@@ -1175,12 +1212,12 @@ function processClueChildren() {
           childIndex = child.dir + child.clueLabel
         }
       } else {
-        if (!nonNumClueIndices[child.clueLabel] ||
-            nonNumClueIndices[child.clueLabel].length < 1) {
+        if (!offNumClueIndices[child.clueLabel] ||
+            offNumClueIndices[child.clueLabel].length < 1) {
           addError('non-num child label ' + child.clueLabel + ' was not seen')
           return
         }
-        childIndex = nonNumClueIndices[child.clueLabel][0]
+        childIndex = offNumClueIndices[child.clueLabel][0]
       }
       if (!clues[childIndex] || childIndex == clueIndex) {
         addError('Invalid child ' + childIndex + ' in ' +
@@ -1223,9 +1260,6 @@ function processClueChildren() {
       lastRowCol = null
       if (childClue.cells.length > 0) {
         lastRowCol = childClue.cells[childClue.cells.length - 1]
-        if (!childClue.len || childClue.len <= 0) {
-          lastRowCol = null
-        }
       }
       lastRowColDir = childClue.clueDirection
     }
@@ -1300,13 +1334,13 @@ function setGridWordEndsAndHyphens() {
         positionInClue = 0
         clueIndex = 'A' + clueLabel
         if (!clues[clueIndex]) {
-          if (!nonNumClueIndices[clueLabel]) {
+          if (!offNumClueIndices[clueLabel]) {
             clueLabel = ''
             clueIndex = ''
             positionInClue = -1
             continue
           }
-          for (ci of nonNumClueIndices[clueLabel]) {
+          for (ci of offNumClueIndices[clueLabel]) {
             if (ci.charAt(0) == 'A' || ci.charAt(0) == 'X') {
               clueIndex = ci
               break
@@ -1321,13 +1355,13 @@ function setGridWordEndsAndHyphens() {
         }
       }
       for (let wordEndPos of clues[clueIndex].wordEndAfter) {
-        if (positionInClue == wordEndPos && j < gridWidth - 1) {
+        if (positionInClue == wordEndPos) {
           grid[i][j].wordEndToRight = true
           break
         }
       }
       for (let hyphenPos of clues[clueIndex].hyphenAfter) {
-        if (positionInClue == hyphenPos && j < gridWidth - 1) {
+        if (positionInClue == hyphenPos) {
           grid[i][j].hyphenToRight = true
           break
         }
@@ -1353,13 +1387,13 @@ function setGridWordEndsAndHyphens() {
         positionInClue = 0
         clueIndex = 'D' + clueLabel
         if (!clues[clueIndex]) {
-          if (!nonNumClueIndices[clueLabel]) {
+          if (!offNumClueIndices[clueLabel]) {
             clueLabel = ''
             clueIndex = ''
             positionInClue = -1
             continue
           }
-          for (ci of nonNumClueIndices[clueLabel]) {
+          for (ci of offNumClueIndices[clueLabel]) {
             if (ci.charAt(0) == 'D' || ci.charAt(0) == 'X') {
               clueIndex = ci
               break
@@ -1374,13 +1408,13 @@ function setGridWordEndsAndHyphens() {
         }
       }
       for (let wordEndPos of clues[clueIndex].wordEndAfter) {
-        if (positionInClue == wordEndPos && i < gridHeight - 1) {
+        if (positionInClue == wordEndPos) {
           grid[i][j].wordEndBelow = true
           break
         }
       }
       for (let hyphenPos of clues[clueIndex].hyphenAfter) {
-        if (positionInClue == hyphenPos && i < gridHeight - 1) {
+        if (positionInClue == hyphenPos) {
           grid[i][j].hyphenBelow = true
           break
         }
@@ -1396,24 +1430,40 @@ function stripLineBreaks(s) {
 
 function displayClues() {
   // Populate clues tables. Check that we have all clues
+  let table = null
+  let dir = ''
   for (let clueIndex of allClueIndices) {
     if (!clues[clueIndex].clue && !clues[clueIndex].parentClueIndex) {
       addError('Found no clue text nor a parent clue for ' + clueIndex)
       return
     }
-    let table = null
-    if (clues[clueIndex].clueDirection == 'A') {
-      table = acrossClues
-      hasAcrossClues = true
-    } else if (clues[clueIndex].clueDirection == 'D') {
-      table = downClues
-      hasDownClues = true
-    } else if (clues[clueIndex].clueDirection == 'X') {
-      table = nodirClues
-      hasNodirClues = true
-    } else {
-      addError('Unexpected clue direction ' + clues[clueIndex].clueDirection + ' in ' + clueIndex)
-      return
+    if (dir != clues[clueIndex].clueDirection) {
+      if (clues[clueIndex].clueDirection == 'A') {
+        table = acrossClues
+        hasAcrossClues = true
+      } else if (clues[clueIndex].clueDirection == 'D') {
+        table = downClues
+        hasDownClues = true
+      } else if (clues[clueIndex].clueDirection == 'X') {
+        table = nodirClues
+        hasNodirClues = true
+      } else {
+        addError('Unexpected clue direction ' + clues[clueIndex].clueDirection + ' in ' + clueIndex)
+        return
+      }
+      dir = clues[clueIndex].clueDirection
+    }
+    if (clues[clueIndex].startNewTable) {
+      let newPanel = document.createElement('div')
+      newPanel.setAttributeNS(null, 'class', 'clues-box');
+      newPanel.appendChild(document.createElement('hr'))
+      let newTable = document.createElement('table')
+      newPanel.appendChild(newTable)
+      newPanel.appendChild(document.createElement('br'))
+
+      let tableParent = table.parentElement
+      tableParent.parentElement.insertBefore(newPanel, tableParent.nextSibling)
+      table = newTable
     }
     if (clues[clueIndex].filler) {
       let tr = document.createElement('tr')
@@ -1449,8 +1499,11 @@ function displayClues() {
     if (clues[clueIndex].cells.length > 0) {
       let i = clues[clueIndex].cells[0][0]
       let j = clues[clueIndex].cells[0][1]
-      tr.addEventListener('click', getRowColDirActivator(
-          i, j, clues[clueIndex].clueDirection));
+      let dir = clues[clueIndex].clueDirection
+      if (dir == 'X') {
+        dir = clueIndex
+      }
+      tr.addEventListener('click', getRowColDirActivator(i, j, dir));
     } else {
       // Fully diagramless. Just select clue.
       tr.addEventListener('click', getClueSelector(clueIndex));
@@ -1739,32 +1792,37 @@ function activateCell(row, col) {
   let activeClueIndex = ''
   let activeClueLabel = ''
   // If the current direction does not have an active clue, toggle direction
-  if (currentDirectionIsAcross && !grid[row][col].isDiagramless &&
-      !grid[row][col].acrossClueLabel &&
-      grid[row][col].downClueLabel) {
-    currentDirectionIsAcross = false;
+  if (currentDir == 'A' && !grid[row][col].isDiagramless &&
+      !grid[row][col].acrossClueLabel) {
+    toggleCurrentDirection()
+  } else if (currentDir == 'D' && !grid[row][col].isDiagramless &&
+             !grid[row][col].downClueLabel) {
+    toggleCurrentDirection()
+  } else if (currentDir.charAt(0) == 'X' &&
+             (!grid[row][col].nodirClues ||
+              !grid[row][col].nodirClues.includes(currentDir))) {
+    toggleCurrentDirection()
   }
-  if (!currentDirectionIsAcross && !grid[row][col].isDiagramless &&
-      !grid[row][col].downClueLabel &&
-      grid[row][col].acrossClueLabel) {
-    currentDirectionIsAcross = true;
-  }
-  if (currentDirectionIsAcross) {
+  if (currentDir == 'A') {
     if (grid[row][col].acrossClueLabel) {
       activeClueLabel = grid[row][col].acrossClueLabel
       activeClueIndex = 'A' + activeClueLabel
     }
-  } else {
+  } else if (currentDir == 'D') {
     if (grid[row][col].downClueLabel) {
       activeClueLabel = grid[row][col].downClueLabel
       activeClueIndex = 'D' + activeClueLabel
     }
+  } else {
+    // currentDir is actually a clueindex (for an X clue)
+    activeClueIndex = currentDir
+    activeClueLabel = currentDir.substr(1)
   }
   if (activeClueIndex != '') {
     if (!clues[activeClueIndex]) {
-      activeCluwIndex = ''
-      if (nonNumClueIndices[activeClueLabel]) {
-        for (let ci of nonNumClueIndices[activeClueLabel]) {
+      activeClueIndex = ''
+      if (offNumClueIndices[activeClueLabel]) {
+        for (let ci of offNumClueIndices[activeClueLabel]) {
           if (ci.charAt(0) == 'X' || ci.charAt(0) == activeClueIndex.charAt(0)) {
             activeClueIndex = ci
             break
@@ -1795,11 +1853,7 @@ function getRowColActivator(row, col) {
 }
 function getRowColDirActivator(row, col, dir) {
   return function() {
-    if (dir == 'A') {
-      currentDirectionIsAcross = true
-    } else {
-      currentDirectionIsAcross = false
-    } 
+    currentDir = dir
     activateCell(row, col);
   };
 }
@@ -1925,12 +1979,31 @@ function toggleCurrentDirection() {
       currentCol < 0 || currentCol >= gridWidth) {
     return
   }
-  if ((!grid[currentRow][currentCol].acrossClueLabel ||
-       !grid[currentRow][currentCol].downClueLabel) &&
-      !grid[currentRow][currentCol].isDiagramless) {
+  let choices = []
+  if (grid[currentRow][currentCol].acrossClueLabel) {
+    choices.push('A')
+  }
+  if (grid[currentRow][currentCol].downClueLabel) {
+    choices.push('D')
+  }
+  if (grid[currentRow][currentCol].nodirClues) {
+    choices = choices.concat(grid[currentRow][currentCol].nodirClues)
+  }
+  if (choices.length < 1) {
     return
   }
-  currentDirectionIsAcross = !currentDirectionIsAcross
+  let i = 0
+  while (i < choices.length && currentDir != choices[i]) {
+    i++;
+  }
+  if (i >= choices.length) {
+    i = -1
+  }
+  let newDir = choices[(i + 1) % choices.length]
+  if (currentDir == newDir) {
+    return
+  }
+  currentDir = newDir
   activateCell(currentRow, currentCol)
 }
 
@@ -1947,10 +2020,12 @@ function handleKeyUpInner(key) {
       return
     }
     // backspace in an empty or prefilled cell
-    if (currentDirectionIsAcross) {
+    if (currentDir == 'A') {
       key = 37  // left
-    } else {
+    } else if (currentDir == 'D') {
       key = 38  // up
+    } else {
+      return
     }
   }
   if (key == 13) {
@@ -2007,6 +2082,9 @@ function handleKeyUpInner(key) {
       let next = clues[currentClueIndex].next
       let cells = clues[next].cells
       if (cells && cells.length > 0) {
+        if (next.charAt(0) == 'X') {
+          currentDir = next
+        }
         activateCell(cells[0][0], cells[0][1])
       }
     }
@@ -2017,6 +2095,9 @@ function handleKeyUpInner(key) {
       let prev = clues[currentClueIndex].prev
       let cells = clues[prev].cells
       if (cells && cells.length > 0) {
+        if (prev.charAt(0) == 'X') {
+          currentDir = prev
+        }
         activateCell(cells[0][0], cells[0][1])
       }
     }
@@ -2041,20 +2122,20 @@ function handleTabKeyDown(e) {
 
 function advanceCursor() {
   // First check if there is successor
-  let successorProperty = 'successor' + (currentDirectionIsAcross ? 'A' : 'D')
+  let successorProperty = 'successor' + currentDir
   if (grid[currentRow][currentCol][successorProperty]) {
     let successor = grid[currentRow][currentCol][successorProperty]
-    currentDirectionIsAcross = (successor.direction == 'A')
+    currentDir = successor.direction
     activateCell(successor.cell[0], successor.cell[1]);
     return
    }
-  if (currentDirectionIsAcross) {
+  if (currentDir == 'A') {
     if (currentCol + 1 < gridWidth &&
         grid[currentRow][currentCol + 1].acrossClueLabel ==
             grid[currentRow][currentCol].acrossClueLabel) {
       handleKeyUpInner(39);
     }
-  } else {
+  } else if (currentDir == 'D') {
     if (currentRow + 1 < gridHeight &&
         grid[currentRow + 1][currentCol].downClueLabel ==
             grid[currentRow][currentCol].downClueLabel) {
@@ -2231,7 +2312,8 @@ function displayGrid() {
       const cellGroup =
           document.createElementNS('http://www.w3.org/2000/svg', 'g');
       let emptyGroup = true
-      if (grid[i][j].wordEndToRight) {
+      if (grid[i][j].wordEndToRight && (j + 1) < gridWidth &&
+          grid[i][j + 1].isLight) {
         const wordEndRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         wordEndRect.setAttributeNS(
@@ -2245,7 +2327,8 @@ function displayGrid() {
         cellGroup.appendChild(wordEndRect)
         emptyGroup = false
       }
-      if (grid[i][j].wordEndBelow) {
+      if (grid[i][j].wordEndBelow && (i + 1) < gridHeight &&
+          grid[i + 1][j].isLight) {
         const wordEndRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         wordEndRect.setAttributeNS(
@@ -2268,7 +2351,8 @@ function displayGrid() {
         hyphenRect.setAttributeNS(
             null, 'y', GRIDLINE + i * (SQUARE_DIM + GRIDLINE) +
             SQUARE_DIM_BY2 - SEP_WIDTH_BY2);
-        hyphenRect.setAttributeNS(null, 'width', HYPHEN_WIDTH);
+	let hw = (j + 1) < gridWidth ? HYPHEN_WIDTH : HYPHEN_WIDTH_BY2
+        hyphenRect.setAttributeNS(null, 'width', hw);
         hyphenRect.setAttributeNS(null, 'height', SEP_WIDTH);
         hyphenRect.setAttributeNS(null, 'class', 'wordend');
         cellGroup.appendChild(hyphenRect)
@@ -2284,7 +2368,8 @@ function displayGrid() {
             null, 'y',
             GRIDLINE + (i + 1) * (SQUARE_DIM + GRIDLINE) - HYPHEN_WIDTH_BY2);
         hyphenRect.setAttributeNS(null, 'width', SEP_WIDTH);
-        hyphenRect.setAttributeNS(null, 'height', HYPHEN_WIDTH);
+	let hh = (i + 1) < gridHeight ? HYPHEN_WIDTH : HYPHEN_WIDTH_BY2
+        hyphenRect.setAttributeNS(null, 'height', hh);
         hyphenRect.setAttributeNS(null, 'class', 'wordend');
         cellGroup.appendChild(hyphenRect)
         emptyGroup = false
