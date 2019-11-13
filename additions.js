@@ -51,7 +51,7 @@ function customizePuzzle() {
     return;
   }
   toolsLink.insertAdjacentHTML(
-    'afterend', `<a id="show-parsing-notes" href=""
+    'afterend', ` <a id="show-parsing-notes" href=""
                   title="Show/hide parsing notes key"
                   onclick="toggleShowParsingNotes();return false">Parsing</a>`
   );
