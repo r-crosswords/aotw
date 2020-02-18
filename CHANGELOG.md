@@ -1,8 +1,24 @@
 # Changelog
 
+### Version: Exolve v0.49 February 17 2020
+
+- Handle tab and shift-tab across clue directions (including nodir).
+- Allow backspacing across linked clues.
+
+### Version: Exolve v0.48 February 14 2020
+
+- Bugfix: Handle the case of a linked clue ending and ressuming on the same
+  cell.
+
+### Version: Exolve v0.47 February 12 2020
+
+- Minor bugfix: activateCell() could make one unnecessary call to itself through
+  toggleCurrentDirection() (making the activeCells array sometimes go bad).
+
 ### Version: Exolve v0.46 February 8 2020
 
-- If an entry is fully prefilled, reveal its anno upon first rendering the puzzle.
+- If an entry is fully prefilled, reveal its anno upon first rendering the
+  puzzle.
 
 ### Version: Exolve v0.45 January 3 2020
 
