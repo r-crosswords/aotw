@@ -1,7 +1,7 @@
 // Antagony added file to provide hidden 'Parsing notes' panel 
 // without affecting the exolve files
 
-const currentDocNum = 11 // Sets which doc is the end of the navigation chain
+const currentDocNum = 12 // Sets which doc is the end of the navigation chain
 
 // Insert custom HTML elements using the exolve hooked function customizePuzzle
 function customizePuzzle() {
