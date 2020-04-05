@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v0.49 February 17 2020
+### Version: Exolve v0.62 April 5 2020
 
 The file *exolve.html* contains *all* the code you need: just make a copy and
 then replace the part that contains the example grid with your own puzzle
@@ -100,6 +100,13 @@ exolve-question sections), then input fields for these get shown too.
 "Reveal/Clear all" controls buttons also include revealing/clearing
 answers to these questions apart from showing/hiding annos/explanations/ninas.
 
+If there are placeholder entries (for orphan clues—i.e., for clues without
+known cells), they do NOT get cleared with 'clear this/all'. For clearing all
+such placeholder entries forcibly, click on the 'Clear all' button when there
+are no entries in the grid (eg, by clicking it a _second_ time). This option is
+only there in puzzles that have such placeholder entries, and in such puzzles,
+a tooltip is shown over the 'Clear all' button to let the user know.
+
 If the setter has set up a submit URL (with an exolve-submit section—the URL
 can be set up using a Google Form, for instance), then there is a *Submit*
 buttion.
@@ -132,6 +139,7 @@ and the exolve-end line:
 * exolve-title
 * exolve-setter
 * exolve-copyright
+* exolve-credits
 * exolve-prelude
 * **exolve-width**
 * **exolve-height**
@@ -188,6 +196,15 @@ If your provide this, it will be displayed with the copyright symbol, under
 the rendered puzzle grid. Example:
 ```
   exolve-copyright: 2019 Viresh Ratnakar
+```
+
+## exolve-credits
+If your provide this, it will be displayed under the copyright. You can provide
+multiple instance of this.
+Example:
+```
+  exolve-credits: Test solver: Zaphod Beelblebrox
+  exolve-credits: Custom code: H. A. C. Ker
 ```
 
 ## exolve-width, exolve-height
@@ -293,10 +310,8 @@ have not been provided. The second is when the setter opts to deliberately
 not provide associations between grid squares and clues, by using non-numeric
 clue labels without providing their grid locations. When the solver is entering
 a value in a light for which the clue association is not known, the highlighted
-"current clue" is actually a browsable interface in which the solver can
-bring up any of all the clues that cover at least one square without a known
-clue association.
-
+"current clue" browsable interface runs through all the clues for which no
+grid cells are known.
 
 ## Some details about diagramless cells
 Note that "diagramlessness" only hides from the solver whether a square is
@@ -375,7 +390,8 @@ While solving, when a light is fully filled in, its clue number changes
 colour (to a light shade of blue, making the unsolved clue numbers stand out).
 There are some minor exceptions when this does not happen (diagramless cells
 or other reasons that don't let us determine when a clue's light is fully
-filled).
+filled). For such clues, the solver can click on the clue number to set (or
+unset) its "has-been-solved" state manually.
 
 As mentioned in the previous section, in a grid that has diagramless squares
 and that does not provide solutions, if the setter wants to display some clue
@@ -470,6 +486,28 @@ a nodir clue can be scattered arbitrarily in the grid). Example:
 Note that this technique can be used to create 3-d (or 4-d!) puzzles. Use a
 nodir section for the third dimension, explicitly specifying the cells for
 each clue along the third dimension.
+
+### Jigsaw puzzle clues
+If there is any nodir clue without cells explicitly specified, then the
+clue is shown with a text entry area next to it. Solvers can record their
+solutions here, until they figure out where in the grid those letters should
+be entered. Solvers can transfer recorded letters from these placeholder areas
+by simply clicking the "copy-placeholder" button (that looks like [⇲]) next to
+the placeholder area, whenever they have some squares highlighted for entry in
+the grid.
+
+The same placeholder text and the copy-placeholder button ([⇲]) are also shown
+in the highlighted scrollable 'orphan' clues widget, whenever the currently
+highlighed squares do not have a known clue association.
+
+The copy-placeholder button feature does not get activated if there are any
+diagramless cells (as only one diagramless is active generally).
+
+The copy-placeholder buttons can be disabled (i.e., not shown at all) by
+specifying the exolve-option, hide-copy-placeholder-buttons. This is useful if
+you find the buttons distracting in appearance, or if copying from the
+placeholder is not very useful for some other reason (for eg., lights are split
+into parts).
 
 ## exolve-explanations
 In a grid that includes solutions, the setter may provide additional notes,
@@ -597,8 +635,20 @@ The list of currently supported options is as follows:
   non-numeric clue labels may want to specify this option.
 - **clues-panel-lines:&lt;N&gt;** Limit the across/down/nodir clues boxes to
   about N lines of text, adding scrollbars if needed.
+- **offset-top:&lt;N&gt;** Draw the grid with this much space above and under
+  it (N pixels). Useful for drawing additional art around the grid using
+  customizePuzzle(), for example.
+- **offset-left:&lt;N&gt;** Draw the grid with this much space to the left and
+  to the right (N pixels). Useful for drawing additional art around the grid
+  using customizePuzzle(), for example.
+- **grid-background:&lt;C&gt;** Set the colour of the black cells to C, which
+  should be a valid HTML colour name/code.
 - **allow-digits** If this option is specified, then we allow solvers to enter
   digits in cells.
+- **hide-copy-placeholder-buttons** This is an option that is only applicable
+  when there are nodir clues without cells explicitly specified. It turns off
+  the display of buttons to copy placeholder texts in those cases (see the
+  subsection below on "Jigsaw puzzle clues".
 
 ## Saving state
 The software automatically saves state. It does so in the URL (after the #)

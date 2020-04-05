@@ -1,5 +1,112 @@
 # Changelog
 
+### Version: Exolve v0.62 April 5 2020
+
+- Add an input handler for answers (otherwise we were stealing focus to the
+  last answer on Safari).
+- Fix cursor jumping in the scratch-pad.
+
+### Version: Exolve v0.61 April 2 2020
+
+- Clicking/tabbing in placeholders in clues table now keeps the focus there.
+- "Clear this" now respects crossers even when the current grid light does not
+  have a clue.
+- Add tooltip to "Clear this" to let users know about the second click for
+  needed for clearing full crossers.
+- Placeholders can be forcibly cleared with a second click on 'Clear all' when
+  there any orphan clues with placeholders. And for such puzzles, a tooltip
+  on 'Clear all' lets the user know of this functionality.
+
+### Version: Exolve v0.60 April 1 2020
+
+- For orphan clue placeholders, use middle dots (···) instead of question marks
+  (???) so that filled placeholders can more readily be visually distinguished
+  from unfilled ones.
+- Minor bugfixes for linked clue number rendering, when the linked numbers
+  are non-numeric.
+
+### Version: Exolve v0.59 April 1 2020
+
+- Do proper styling of clue numbers for linked clues: let them spill into
+  the clue column, and indent the clue column.
+- Enable 'clear this' button if there is an anno (just like 'reveal this')
+- In 'reveal/clear this' set/reset clue solved state and colour even for
+  orphan clues.
+
+### Version: Exolve v0.58 March 26 2020
+
+- Go back to using old var names such as currentRow, as some customizePuzzle()
+  scripts depend on them.
+- Add a test (test-customize-puzzle.html) to make sure we do not change these
+  names going forward.
+- Increase max allowed grid size to 100.
+- Add the following new exolve-options:
+  - grid-background:[html clolor]
+  - offset-left:[x]
+  - offset-top:[y]
+  The offset-left and offset-top options allow you to move the position of the
+  grid (for example, if you want to paint additional artwork around the grid,
+  using customizePuzzle().
+- Add an exolve-credits section (repeatable).
+- Expose numCelldFilled as a global (numCellsToFill is already there)
+
+### Version: Exolve v0.57 March 25 2020
+
+- Only allow manually setting/unsetting a clue's "solved" state for clues
+  that do not have all cell locations known.
+- When clicking on a black cell or the title (to unhighlight active cells),
+  also unhighlight active clues.
+
+### Version: Exolve v0.56 March 23 2020
+
+- Mainly a revamp of tab navigation, to take into account various cases
+  involving diagramless cells, clues without cells specified, etc.
+- When on a diagramless cell or a cell without a known clue, the clues strip
+  will now cycle through only "orphan clues" with the < and > buttons in it.
+- Darken the current cell more than the rest of the active cells.
+- Add small triangles to indicate the current direction. Unobtrusive and
+  harmless (perhaps reassuring) normally, and quite useful on diagramless cells.
+- Allow clicking on clue numbers in the clues lists, to manually toggle "solved"
+  state (i.e., the light-blue colour). Useful for jigsaw puzzles.
+
+### Version: Exolve v0.55 March 9 2020
+
+- Add prev/next clue buttons in the current clue strip, helping navigation
+  on mobile devices where tab/shift-tab is not doable.
+
+### Version: Exolve v0.54 March 5 2020
+
+- Bugfix: focus on placeholder in a clue only if it actually exists!
+
+### Version: Exolve v0.53 March 5 2020
+
+- Turn on orphan-clue placeholder enrtry areas even if diagramless cells are
+  present--just turn off the copy-from-placeholder buttons (as only one cell
+  will be active if it is diagramless).
+
+### Version: Exolve v0.52 March 4 2020
+
+- Bugfix: tab-navigation in the clues list also moves focus to the placeholder
+  input area, if present.
+- Add hide-copy-placeholder-buttons option to not show copy placeholder buttons
+  if desired.
+
+### Version: Exolve v0.51 March 3 2020
+
+- Allow tab/shift-tab for lights even when they do not have a known clue
+  associated.
+- Use a shorter separator string for saving state (but support the older one
+  too).
+- For nodir clues without cells specified, create placeholder text-entry areas.
+  Also add buttons to transfer into active cells.
+- Bugfix: only if a tab/shift-tab is usable for navigation do we now prevent
+  default browser behaviour.
+- Bugfix: When entering answers, do not make the cursor jump to the end.
+
+### Version: Exolve v0.50 February 24 2020
+
+- Bug fix: revealAll() did not work properly for non-square grids.
+
 ### Version: Exolve v0.49 February 17 2020
 
 - Handle tab and shift-tab across clue directions (including nodir).
