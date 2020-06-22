@@ -1,5 +1,131 @@
 # Changelog
 
+### Version: Exolve v0.77 June 20 2020
+
+- In puzzles with solutions, we now automatically add to the anno (or create
+  an ano consisting of) the solution to the clue, derived from the grid
+  letters and the enum (for spaces, hyphens, etc.). For orphan clues,
+  the solution gets placed inside the placeholder blank slot instead of
+  the head of the anno.
+
+- This would have meant that if in an older grid the the solution was explicitly
+  included in the anno, it would have got duplicated. So, the code does check
+  to see if the solution string (punctuation/markup notwithstanding) is present
+  at the head of the anno, and avoids duplicating it if so. If the solver wants
+  to present the solution in some other way, they can suppress this by adding
+  this line to the puzzle specs:
+    exolve-option: no-auto-solution-in-anno
+  This option only suprresses the solution getting added to the anno appearing
+  after the clue. The solution does still get added to the placeholder blank
+  slot of an orphan clue, upon "Reveal this," even with this option.
+
+- If a clue does not provide its enum (using "(?)" or "(one word)" for eg),
+  the setter can still provide its correct solution in square brackets,
+  at the beginning of the anno. For example,
+  "[A] Lack of understanding (?) [NO CLUE]"
+
+- For orphan clues (such as in a jigsaw puzzle), if the solver is navigating
+  in the clues list having clicked there last (rather than the grid), then
+  we now make "Reveal this" reveal the current clue rather than the current
+  light in the grid.
+
+- The styling of the anno is now normal monospace instead of italic. The
+  solution text within the anno is bold monospace (and has the class name
+  "solution" for use in css overrides if desired).
+
+- Backspace now does not go back beyond a light boundary (except in linked
+  clues).
+
+### Version: Exolve v0.76 June 13 2020
+
+- Allow 'exolve-preamble' as an alias for 'exolve-prelude' as "preamble" is
+  more commonly used in crosswordese.
+- Add 'exolve-postscript' section to add a section at the bottom of the puzzle
+  panel. This can be used, for example, to add nav links.
+- Add option to allow exolve-question to not convert all answer letters into
+  uppercase (for long-form answers, for example). This is done by optionally
+  including the phrase "[lowercase-ok]" (without the quotes) immediately after
+  the enum specified in the question.
+- When exolve-submit is specified, allow submitting partial solutions too,
+  but with an extra warning in the confirmation dialog.
+
+### Version: Exolve v0.75 May 28 2020
+
+- Add support to completely customize the colour scheme of the puzzle by
+  using options like "exolve-option: color-button:blue".
+- Add support for specifying orphan-clue to grid-clue (and/or or grid-cells)
+  mappings: eg., in a nodir clue like "[P] Some clue (4) [4d]"
+- Tweak linked clue indentation a little for non-numeric labels and for Firefox.
+- Bug fix: HTMLCollection is not iterable on Edge, fixed in displayNinas()
+
+### Version: Exolve v0.74 May 26 2020
+
+- The latest version of Chrome adds a black outline on focus to #grid-input,
+  which does not look that great. Add css to counteract.
+
+### Version: Exolve v0.73 May 25 2020
+
+- Bug fix: "catch" needs a paramter (IE/Edge require it strictly).
+- Make the grid-input text invisible, as not matter how much I tweak
+  its alignment with the underlying svg text in the cell, there is
+  still some doubling effect seen in some platforms. 
+
+### Version: Exolve v0.72 May 14 2020
+
+- No functionality change. Only some optimizations: use object references
+  when possible, instead of deindexing arrays with the same indices
+  repeatedly.
+- Change the example crossword in exolve.html and exolve-m.html to
+  something smaller and simpler.
+
+### Version: Exolve v0.71 May 7 2020
+
+- Bug-fix: Unicode property escapes in regexpes (added to the code in v0.70)
+  do not work on some browsers such as Firefox (support is coming soon though).
+  Exolve was failing on Firefox because of this, even for English. Fixed so
+  that it only fails for non-English, and that too with a useful error
+  message.
+
+### Version: Exolve v0.70 May 7 2020
+
+- Added support for non-English languages:
+  - exolve-language: &lt;language-code&gt; &lt;Script:gt;
+    [&lt;max-char-codes-per-letter&gt;]
+  - Required significant changes (but everything should be backward-compatible)
+    in how we check inputs, how we specify the grid, how we save and restore
+    state.
+- Non-English languages made a known issue slightly worse: the current grid
+  letter was getting rendered in a slightly blurry way, because of a slight
+  position mismatch between the cell-text and grid-input. Tweaked a bit to
+  improve.
+- Added an exolve-relabel section that can let you change the text of any
+  button (and any HTML element with an id). This should be particularly useful
+  for non-English crosswords.
+
+### Version: Exolve v0.69 May 5 2020
+
+- When a non-numerically labeled across/down clue or a nodir clue can be
+  ascertained to point to an unclued light (because its start cell or all
+  its cell locations have been provided), we coalesce them now.
+- Documentation tweaks.
+- Typing answers takes the focus away from the grid now, allowing tab
+  navigation.
+- We start out without usingGnav=true now.
+
+### Version: Exolve v0.68 May 1 2020
+
+- Bug fix: on Safari, setting selectionEnd moved focus. When setting up
+  the placeholder for an orphan clue at the top, we should not set selectionEnd
+  in the placeholder in the clue in the clues table.
+
+### Version: Exolve v0.67 April 18 2020
+
+- Bug fix: For a non-numeric clue label (say, "P") with specified grid-position,
+  there were a couple of places where the code tried to deindex a non-existent
+  clue index like 'AP' or 'DP'.
+- Now allow "regular" clue numbers like 16a, 42a, 5d, and 17D in exolve-colour
+  and exolve-nina (apart from A16 and D17 as previously allowed).
+
 ### Version: Exolve v0.66 April 16 2020
 
 - The chessboard notation breaks down when there are more than 26 columns.

@@ -4,11 +4,11 @@ and add any other styling as required
 */
 
 /* Make the annotation less like the clue text */
-.anno-text {
+/* .anno-text {
   font-style: normal;
   font-size: small;
   font-family: sans-serif;
-}
+} */
 /* minimual bolding  for pre-filled grid letters */
 .prefill {
   font-weight: 600;
@@ -36,4 +36,7 @@ and add any other styling as required
 .nav-button:disabled {
   color: gray;
   pointer-events: none;
+}
+.question {
+  margin: 5px 0 5px 0;
 }
