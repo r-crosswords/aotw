@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.77 June 13 2020
+-->
+
+<link rel="stylesheet" type="text/css" href="../exolve-m.css?v0.66"/>
+<script src="../exolve-m.js?v0.66"></script>
+
+<link rel="stylesheet" type="text/css" href="../overrides.css"/>
+<script src="../additions.js"></script>
+<link rel="icon" href="../favicon.ico" />
+
+<title>AOTW Puzzle 13</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: AOTW013
+  exolve-title: Community AOTW Crossword 13
+  exolve-setter: contributors to <a href="https://www.reddit.com/r/crosswords/">/r/crosswords</a>
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        . 0 . 0 . 0 . 0 . 0 . 0 . 0 . 
+        0 E!0 E!0 A!. P!0 E!0 A!0 E!0 
+        . 0 . 0 . 0 . 0 . 0 . 0 . 0 . 
+        0 R!0 A!0 I!0 N!. L!0 T!0 N!0 
+        . 0 . 0 . . . 0 . 0 . 0 . 0 . 
+        0 E!0 T!. D!0 S!0 C!0 A!0 E!0 
+        . . . 0 . 0 . 0 . 0 . . . 0 . 
+        . S!0 R!0 P!0 . 0 I!0 C!0 S!. 
+        . 0 . . . 0 . 0 . 0 . 0 . . . 
+        0 A!0 N!0 S!0 I!0 G!. U!0 E!0 
+        . 0 . 0 . 0 . 0 . . . 0 . 0 . 
+        0 L!0 G!0 T!. D!0 V!0 L!0 E!0 
+        . 0 . 0 . 0 . 0 . 0 . 0 . 0 . 
+        0 O!0 T!0 O!0 E!. L!0 S!0 E!0 
+        . 0 . 0 . 0 . 0 . 0 . 0 . 0 . 
+  exolve-across:
+    8  <strong>?E?E?A (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    9  <strong>P?E?A?E? (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    10 <strong>?R?A?I?N (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    11 <strong>L?T?N? (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    12 <strong>?E?T (4)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    13 <strong>D?S?C?A?E? (10)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    14 <strong>S?R?P? (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    15 <strong>?I?C?S (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    18 <strong>?A?N?S?I?G (10)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    20 <strong>U?E? (4)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    22 <strong>?L?G?T (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    23 <strong>D?V?L?E? (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    25 <strong>?O?T?O?E (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    26 <strong>L?S?E? (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+  exolve-down:
+    1  <strong>?E?R?E (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    2  <strong>?E?A?T?R (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    3  <strong>?A?I (4)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    4  <strong>?P?N?S? (7)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    5  <strong>?E?L?C?I?G (10)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    6  <strong>?A?T?A (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    7  <strong>?E?N?E?S (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    13 <strong>D?P?S?T?O? (10)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    14 <strong>S?A?L?O? (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    16 <strong>C?U?L?S? (8)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    17 <strong>?I?D?E? (7)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    19 <strong>N?G?T? (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    21 <strong>E?E?E? (6)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+    24 <strong>V?L? (4)</strong># <a href="" target="_blank">by  (wk ).</a><br>Def:  | 
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+</head>
+<body onload="createPuzzle()">
+</body>
+</html>
