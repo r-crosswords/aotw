@@ -1,9 +1,30 @@
 # Changelog
 
+### Version: Exolve v0.80 July 20 2020
+
+- Supporting code and documentation for creating Exolve widgets.
+- Set some cookie attributes to allow websites to use Exolve code served by a 
+  different site.
+- Some crossrefs in README.md.
+
+### Version: Exolve v0.79 July 10 2020
+
+- Changes to make puzzles more responsive on mobile devices.
+  - Set the grid size and clues panel sizes depending upon the viewport size.
+  - Most of the time, the user will not have to "pinch" to size, the UI
+    should be correctly sized already.
+- If the 'outermost-stack' div already exists (old html file, likely),
+  replace it with current HTML.
+
+### Version: Exolve v0.78 June 30 2020
+
+- If an HTML element with the id "exolve" is present, insert the puzzle
+  within it.
+
 ### Version: Exolve v0.77 June 20 2020
 
 - In puzzles with solutions, we now automatically add to the anno (or create
-  an ano consisting of) the solution to the clue, derived from the grid
+  an anno consisting of) the solution to the clue, derived from the grid
   letters and the enum (for spaces, hyphens, etc.). For orphan clues,
   the solution gets placed inside the placeholder blank slot instead of
   the head of the anno.
@@ -12,10 +33,11 @@
   included in the anno, it would have got duplicated. So, the code does check
   to see if the solution string (punctuation/markup notwithstanding) is present
   at the head of the anno, and avoids duplicating it if so. If the solver wants
-  to present the solution in some other way, they can suppress this by adding
+  to present the solution in some other way, they can suppress the automatic
+  addition of the solution to the anno by adding
   this line to the puzzle specs:
     exolve-option: no-auto-solution-in-anno
-  This option only suprresses the solution getting added to the anno appearing
+  This option only suppresses the solution getting added to the anno appearing
   after the clue. The solution does still get added to the placeholder blank
   slot of an orphan clue, upon "Reveal this," even with this option.
 
