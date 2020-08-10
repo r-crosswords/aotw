@@ -4,9 +4,9 @@
 const currentDocNum = 12 // Sets which doc is the end of the navigation chain
 
 // Insert custom HTML elements using the exolve hooked function customizePuzzle
-function customizePuzzle() {
+function customizeExolve(puz) {
   // Insert parsing key table
-  let toolsTable = document.getElementById('control-keys-list');
+  let toolsTable = document.getElementById('xlv1-tools');
   if (!toolsTable) {
     return;
   }
@@ -46,7 +46,7 @@ function customizePuzzle() {
   );
 
   // Insert parsing key link in the tools line
-  let toolsLink = document.getElementById('show-control-keys');
+  let toolsLink = document.getElementById('xlv1-tools-link');
   if (!toolsLink) {
     return;
   }
@@ -63,7 +63,7 @@ function customizePuzzle() {
   let docNum = docInfo.docNum;
   let extension = docInfo.extension;
   if (docNum > 0) {
-    let stackDiv = document.getElementById('outermost-stack');
+    let stackDiv = puz.frame;
     if (!stackDiv) {
       return;
     }

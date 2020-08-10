@@ -1,5 +1,66 @@
 # Changelog
 
+### Version: Exolve v0.84 August 7 2020
+
+- Major refactoring to address the following problems that were roadblocks
+  in getting Exolve used within arbitrary websites without conflicting with
+  the site's own JavaScript and HTML:
+
+  - There were lots of globals in the JavaScript.
+  - HTML ids and class names were not distinctive.
+  - You could only have one puzzle within a single web page.
+
+- With this release:
+
+  - There are only the following globals created or used by the JavaScript code,
+    all but one having a distinctive name unlikely to collide with anything:
+    Exolve, exolvePuzzles, createExolve, customizeExolve, and createPuzzle.
+    - createPuzzle() has been retained (though marked deprecated) as it is
+      used by all existing old Exolve puzzle files.
+  - All HTML ids and class names begin with "xlv".
+  - You can have multiple puzzles within the same web page.
+    - You can place a puzzle within a specific container (such as a DIV) by
+      passing the container's HTML id at puzzle creation time.
+    - Or you can just have create puzzles get appended to the end of the page.
+    - Each puzzle on a page can use its own oprions (such as colours) and can
+      have its own customization, if needed.
+
+- Existing puzzle files should continue to work, with one exception: if you
+  used customizePuzzle() in the past, and/or you added supplemental CSS rules,
+  you would have to update those things.
+  - Use customizeExolve(puzzle) now, instead of customizePuzzle. The puzzle
+    object has all the components of the puzzle (instead of them being globals).
+    Some of the names of the puzzle components have changed (mostly shortenings
+    of very long names).
+  - For updating CSS rules, please note that all class names and HTML ids now
+    begin with xlv. Class names are simply the old names prefixed by "xlv-".
+    Use class names in CSS rules instead of ids, preferably. The ids are
+    puzzle-specific and use prefixes like "xlv1-", "xlv2-", etc.
+
+- Bug-fix: for languages with multi-character compound letters (such as Hindi),
+  automatically inferred clue solutions were not getting set correctly.
+- Add some space between exolve-credits-generated lines via CSS.
+
+### Version: Exolve v0.83 August 3 2020
+
+- Refactoring, essentially no change in functionality. About 1500 fewer bytes.
+
+### Version: Exolve v0.82 August 2 2020
+
+- With Exolve puzzles embedded inline (not via iframes) in sites, we have
+  to deal with location-hash-parts that are not Exolve state. Modified
+  state parsing to now try the cookie if there is a location hash but its
+  parsing fails.
+
+### Version: Exolve v0.81 July 30 2020
+
+- Move the current clue strip up a bit to clear the top of the grid or top
+  of the active cell (depending upon whether it is in its normal position
+  or scrolled position).
+- Set font family for small-print (otherwise it gets inherited and looked
+  bad in Blogger).
+- Do not set location-hash state when used in an iframe widget.
+
 ### Version: Exolve v0.80 July 20 2020
 
 - Supporting code and documentation for creating Exolve widgets.
