@@ -4,11 +4,16 @@ and add any other styling as required
 */
 
 /* Make the annotation less like the clue text */
-/* .xlv-anno-text {
-  font-style: normal;
+.xlv-anno-text {
+  color: seagreen !important;
+  /* font-style: normal;
   font-size: small;
-  font-family: sans-serif;
-} */
+  font-family: sans-serif; */
+}
+.xlv-solution {
+  color: orangered;
+}
+
 /* minimual bolding  for pre-filled grid letters */
 .xlv-prefill {
   font-weight: 600;
@@ -40,4 +45,3 @@ and add any other styling as required
 .xlv-question {
   margin: 5px 0 5px 0;
 }
-
