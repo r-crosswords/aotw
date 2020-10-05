@@ -3,9 +3,10 @@
 
 const currentDocNum = 13 // Sets which doc is the end of the navigation chain
 
-// Insert custom HTML elements using the exolve hooked function customizePuzzle
+// Insert custom HTML elements using the exolve hooked function customizeExolve
 function customizeExolve(puz) {
-  // Insert parsing key table
+  // Create the AOTW/POTD parsing key table
+  // toolsTable is just a handle on the location within the dom
   let toolsTable = document.getElementById('xlv1-tools');
   if (!toolsTable) {
     return;
@@ -46,15 +47,21 @@ function customizeExolve(puz) {
   );
 
   // Insert parsing key link in the tools line
+  // toolsLink is just a handle on the location within the dom
   let toolsLink = document.getElementById('xlv1-tools-link');
   if (!toolsLink) {
     return;
   }
-  toolsLink.insertAdjacentHTML(
-    'afterend', ` <a id="show-parsing-notes" href=""
-                  title="Show/hide parsing notes key"
-                  onclick="toggleShowParsingNotes();return false">Parsing</a>`
-  );
+  
+  // Only show the parsing key if the main document specifies it in the script calling line
+  let showParse = document.getElementById('ant-code').getAttribute('show-parse');
+  if (showParse != "0") {
+    toolsLink.insertAdjacentHTML(
+      'afterend', ` <a id="show-parsing-notes" href=""
+      title="Show/hide parsing notes key"
+      onclick="toggleShowParsingNotes();return false">Parsing</a>`
+    );
+  }
 
   // Build the Navigation bar and position it just below the outer stack,
   // so it's always at the bottom-left of the page

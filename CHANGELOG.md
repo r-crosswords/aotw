@@ -1,5 +1,141 @@
 # Changelog
 
+### Version: Exolve v0.94 October 4 2020
+
+- Bug fix: in-clue-annos were not getting rendered properly in the current clue
+  above the grid.
+
+### Version: Exolve v0.93 October 4 2020
+
+- A couple of quick fixes/updates:
+- If there already are span tags in a clue, don't give up on in-clue-annos!
+- s/darkblue/darkgreen/
+- Add a do-not-erase param to checkAll()
+
+### Version: Exolve v0.92 October 4 2020
+
+- All "in-clue annos": "28 Replace bottles containing ~{questionable medicine}~ (7)"
+  will underline "questionable medicine" as the definition when the solver
+  clicks on "Reveal this/all".
+- You can provide a custom class name to toggle for the in-clue anno.
+- Create a javaScript API to add arbitrary text within a cell, `addCellText()`
+
+### Version: Exolve v0.91 September 13 2020
+
+- Very minor changes, all needed for the first release of Exet.
+- Add an optional maxDim parameter to the Exolve constructor, to dictate
+  displayed grid-sizing. Useful for creating smaller "preview" crosswords
+  even when the available space is larger.
+- Do not convert everything tyoed in the scratch pad to upper case.
+
+### Version: Exolve v0.90 September 8 2020
+
+- Add functionality to limit checking/revealing to just the current cell
+  rather than the whole current light. This is done when there is a long
+  click (500+ms) on "Check this" or "Reveal this." Caveat; this does
+  not work on phones and tablets (I only tested on Android) as they deal
+  with long-presses in some special way that I'll try to work with, at some
+  point.
+- Change the default background color of the current clue strip (shown above
+  the grid) to 'white' instead of 'mistyrose' (the active clues in the clues
+  lists still get the 'mistyrose'). This results in a more relaxed appearance
+  (I should have realized this and made this change earlier!). Of course
+  this can be customized too (`exolve-option: color-currclue:mistyrose` will
+  restore the current colour scheme). When the current clue is an orphan, its
+  background continues to be shown as 'linen' (which can be changed with
+  `exolve-option: color-orphan:white`, for example).
+- When there are multiple Exolve puzzles, use a running variable to set
+  the index of a new one, rather than using the # of existing puzzles,
+  as we might also need to destroy puzzles from a web page (for example,
+  to show a preview).
+- Allow under-construction grids to specify '?' as the letter in a cell.
+  This is treated just like '0', except that a '0' signifies that the
+  grid has cells where the solution has not been provided, but a '?'
+  does not.
+- Bug-fix: when the enum specified hyphenation in a child clue, and that
+  child clue did not exist in the clues lists, we were hitting an
+  uninitialized property.
+- Separately track the solution to display for a clue from the anno to
+  display. Wrao displayed anno in its own span. Wrap the text of the
+  clue in its own span.
+- Remove weird extra space between prev/next buttons in te current clue strip.
+- When typing in the grid, let space-bar advance to the next cell.
+- When typing in the grid, if an invalid character (such as punctuation) is
+  typed, we were deleting the current entry. Don't do that (delete only
+  with space or backspace or a new valid entry).
+
+### Version: Exolve v0.89 August 31 2020
+
+- Add "conf" parameter defaulting to true, to revealAll(), checkAll(),
+  clearAll(). Useful for programmatically revealing/checking/clearing
+  all cells without creating a confirmation dialog.
+- Follow the order used in the puzzle specs among across/down/nodir clue lists
+  for rendering them. Also use that order for choosing the direction when
+  toggling.
+- Allow some across/down clues to be "deleted" in the sense that they will not
+  get highlighted as we go through the clues. The use-case is for omitting some
+  across/down clues that are completely subsumed by some nodir clues (See
+  exolve/issues/37). To mark a clue as deleted, specify it as * after its
+  clue number.
+- Add more indentation space for clue labels that are not
+  numbers/digits/letters.
+- Bug-fix: setting the "left" attr of curr-clue-parent was getting skipped
+  in a corner case.
+
+### Version: Exolve v0.88 August 19 2020
+
+- Make *all* messages/labels/hover-texts customizable through exolve-relabel.
+- Add decorator "~" that marks as cell as "skipped-number" cell. This should
+  be used to not assign the normal number to a cell that starts an across or
+  down clue (that number will get assigned to the next cell that starts a clue).
+  Can be used to to create specialty grids with unclued lights or lights
+  clued in special ways. This can also be used to create non-numerically-
+  labelled lights, as an alternative to hide-inferred-clue-numbers.
+- Better clue panel scrolling when clues-panel-lines is used: instead of
+  scrollIntoView(), we just scroll the clues panel by the needed amount.
+
+### Version: Exolve v0.87 August 16 2020
+
+- Some CSS protections for styles that get inherited when embedding. In
+  particular, box-sizing for the clue number column TD in clues lists
+  should not have 'box-sizing: border-box' as we want to exclude the
+  padding from its 2ch max-size.
+- When keeping the current clue visible while scrolling, allow for
+  fixed/sticky-positioned navbars at the top by adding a visTop param
+  to the constructor, that clients can optionally pass as the height of
+  any sticky nav bar at the top.
+- Fixed bug in option clues-panel-lines.
+
+### Version: Exolve v0.86 August 15 2020
+
+- When going to next/prev clue from small-button clicks on the current clue
+  strip, don't jump focus to a placeholder input in the clues list.
+- After dialogs (etc.), set focus back to gridInput based upon whether
+  gridInputWrapper.style.display is not 'none' (rather than from usingGnav: we
+  could be !usingGnav but still have some active cells).
+- Add a CSS style rule for setting font family and font size (same as grid
+  letter) for the outermost .xlv-frame element, so that when embedding we do
+  not inherit weird fonts unintentionally.
+
+### Version: Exolve v0.85 August 12 2020
+
+- Increase font size of clue numbers in grid cells by 1 point.
+- Don't use sonme random keycode to represent "shift-tab": pass a boolean to
+  indicate "shift"
+- Diagramless bug fix: active clues were not getting shown even in the
+  non-diagramless parts of the puzzle, even when their start cells were
+  specified.
+- Complain about invalid chars if found in grid spec.
+- Found and fixed another couple of Diagramless corner case bugs:
+  - extendsDiagramlessA/D() were incorrectly ignoring whether the previous cell
+    ended in a bar.
+  - Tab-navigation with non-diagramless adjoining diagramless was broken
+  - Simplified diagramless gnav: it now happens in units of consecutive cells
+    when possible, instead of single cells.
+- Found and fixed a bug in jigsaw "reveal this" from the clues list side that
+  had sneaked in probably with v0.84.
+- Shorten "Diagramless" to "Dgmless"
+
 ### Version: Exolve v0.84 August 7 2020
 
 - Major refactoring to address the following problems that were roadblocks

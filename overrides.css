@@ -13,6 +13,9 @@ and add any other styling as required
 .xlv-solution {
   color: orangered;
 }
+.xlv-definition {
+  text-decoration-color: orangered;
+}
 
 /* minimual bolding  for pre-filled grid letters */
 .xlv-prefill {
