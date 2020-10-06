@@ -2336,8 +2336,8 @@ Exolve.prototype.finalClueTweaks = function() {
         !this.isOrphan(clueIndex) &&
         !this.roughlyStartsWith(theClue.anno, theClue.solution)) {
       // For orphans, we reveal in their placeholder blanks.
-      theClue.dispSol = '<br><span class="xlv-solution">' + theClue.solution +
-                        ' </span>';
+      theClue.dispSol = '<span class="xlv-solution">' + theClue.solution +
+                        '. </span>';
     }
     if (theClue.anno || theClue.dispSol) {
       this.hasReveals = true

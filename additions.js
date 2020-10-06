@@ -5,6 +5,18 @@ const currentDocNum = 13 // Sets which doc is the end of the navigation chain
 
 // Insert custom HTML elements using the exolve hooked function customizeExolve
 function customizeExolve(puz) {
+  //Insert a carriage return before and remove the period from the end of anno soultions
+  for (let ci of puz.allClueIndices) {
+    let clue = puz.clues[ci]
+    let annoSpan = clue.annoSpan
+    let html = annoSpan.innerHTML.trim()
+    if (!html) continue
+    annoSpan.innerHTML = '<br>' + html
+    let solSpan = annoSpan.getElementsByClassName('xlv-solution')
+    if (solSpan.length == 0) continue
+    solSpan[0].innerHTML = clue.solution + ' '
+  }
+
   // Create the AOTW/POTD parsing key table
   // toolsTable is just a handle on the location within the dom
   let toolsTable = document.getElementById('xlv1-tools');
