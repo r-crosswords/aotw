@@ -11,10 +11,10 @@ and add any other styling as required
   font-family: sans-serif; */
 }
 .xlv-solution {
-  color: orangered;
+  color: crimson;
 }
 .xlv-definition {
-  text-decoration-color: orangered;
+  text-decoration-color: crimson;
 }
 
 /* minimual bolding  for pre-filled grid letters */
