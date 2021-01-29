@@ -51,7 +51,8 @@ var exolvePuzzles;
 /**
  * Constructor to create an Exolve puzzle.
  *
- * puzzleText contains the puzzle specs.
+ * puzzleSpec is a string that contains the puzzle specs in the Exolve plain
+ *     text format.
  * containerId is the optional HTML id of the container element in which you
  *     want to create this puzzle. If empty, the puzzle is created inside
  *     the element with id "exolve" if it exists (and its id is changed to
@@ -61,27 +62,30 @@ var exolvePuzzles;
  *     web page.
  * customized is an optional function that will get called after the puzzle
  *     is set up. The Exolve object will be passed to the function.
- * addStateToUrl should be set to false only if you do *not* want to save
- *     the puzzle state in the URL (the puzzle state is also saved in a
- *     cookie, but that does not work for local files). Unless you are
- *     embedding the puzzle in an iframe for some reason, set this to true.
+ * provideStateUrl should be set to true if you also want to provide a URL
+ *     that includes the current state and can be bookmarked or shared. Note
+ *     that the puzzle state is always attempted to be saved in local storage.
  * visTop should be set to the height of any sticky/fixed position elements
  *     at the top of the page (normally just 0).
  * maxDim If non-zero, use this as the suggested max size of the container
  *    in px.
+ * saveState If false, state is not saved in local storage. Useful for
+ *    creating temporary/preview puzzles.
  */
-function Exolve(puzzleText,
-                containerId="",
+function Exolve(puzzleSpec,
+                containerId='',
                 customizer=null,
-                addStateToUrl=true,
+                provideStateUrl=true,
                 visTop=0,
-                maxDim=0) {
-  this.VERSION = 'Exolve v0.94 October 4 2020'
+                maxDim=0,
+                saveState=true) {
+  this.VERSION = 'Exolve v1.01 January 24 2021'
 
-  this.puzzleText = puzzleText
+  this.puzzleText = puzzleSpec
   this.containerId = containerId
   this.customizer = customizer
-  this.addStateToUrl = addStateToUrl
+  this.provideStateUrl = provideStateUrl
+  this.saveState = saveState
 
   this.gridWidth = 0
   this.gridHeight = 0
@@ -95,6 +99,12 @@ function Exolve(puzzleText,
   // For span-class-specified ninas, ninaClassElements[] stores the elements
   // along with the colours to apply to them when showing the ninas.
   this.ninaClassElements = []
+  this.forcedSeps = {
+    'force-hyphen-right': [],
+    'force-hyphen-below': [],
+    'force-bar-right': [],
+    'force-bar-below': [],
+  }
 
   this.grid = []
   this.clues = {}
@@ -224,18 +234,23 @@ function Exolve(puzzleText,
     'across-label': 'Across',
     'down-label': 'Down',
     'tools-link': 'Tools',
-    'tools-link.hover': 'Show/hide tools: list of control keys and scratch pad',
+    'tools-link.hover': 'Show/hide tools: manage storage, see list of control keys and scratch pad',
     'tools-msg': `
+       Control keys:
        <ul>
          <li><b>Tab/Shift-Tab:</b> Jump to the next/previous clue in the current direction</li>
          <li><b>Enter, Click/Tap:</b> Toggle current direction</li>
          <li><b>Arrow keys:</b> Move to the nearest light square in that direction</li>
          <li><b>Spacebar:</b> Place/clear block in the current square if it's diagramless</li>
        </ul>`,
+    'manage-storage': 'Manage local storage',
+    'manage-storage.hover': 'View puzzle Ids for which state has been saved. Delete old saved states to free up local storage space if needed',
+    'manage-storage-close': 'Close (local storage)',
+    'manage-storage-close.hover': 'Close the local storage management panel',
     'exolve-link': 'Exolve on GitHub',
     'report-bug': 'Report bug',
-    'saving-msg': 'Your entries are auto-saved in cookies, for puzzles accessed over HTTPS and not from local files.',
-    'saving-bookmark': 'You can bookmark/save this link as additional back-up:',
+    'saving-msg': 'Your entries are auto-saved in the the browser\'s local storage.',
+    'saving-bookmark': 'You can share the state using this link:',
     'saving-url': 'URL',
     'shuffle': 'Scratch pad: (click here to shuffle)',
     'shuffle.hover': 'Shuffle selected text (or all text, if none selected)',
@@ -258,6 +273,9 @@ function Exolve(puzzleText,
     'confirm-reveal-all': 'Are you sure you want to reveal the whole solution!?',
     'confirm-submit': 'Are you sure you are ready to submit!?',
     'confirm-incomplete-submit': 'Are you sure you want to submit an INCOMPLETE solution!?',
+    'confirm-delete-id': 'Delete puzzle state for puzzle id',
+    'confirm-delete-older': 'Delete all puzzle states saved before',
+    'confirm-state-override': 'Do you want to override the state saved in this device with the state found in the URL?',
   }
 
   // Variables set by exolve-option
@@ -282,19 +300,20 @@ Exolve.prototype.init = function() {
   this.parseRelabel()
   this.computeGridSize(this.maxDim)
 
-  if (!this.id || !this.id.match(/^[a-zA-Z][a-zA-Z\d-]*$/)) {
-    this.throwErr(
-      'Puzzle id should be non-empty, should start with a letter, ' +
-      'and should only have alphanumeric characters or -: ' + this.id)
+  const SPECIAL_ID = '42xlvIndex42'
+
+  if (!this.id || this.id == SPECIAL_ID) {
+    this.throwErr('Puzzle id should be non-empty: ' + this.id)
   }
   if (!exolvePuzzles) {
-    exolvePuzzles = {'42xlvIndex42': 1}
+    exolvePuzzles = {}
+    exolvePuzzles[SPECIAL_ID] = 1
   }
   if (exolvePuzzles[this.id]) {
     this.throwErr('Puzzle id ' + this.id + ' is already in use')
   }
   exolvePuzzles[this.id] = this
-  this.index = exolvePuzzles['42xlvIndex42']++
+  this.index = exolvePuzzles[SPECIAL_ID]++
   this.prefix = 'xlv' + this.index
 
   const basicHTML = `
@@ -332,30 +351,43 @@ Exolve.prototype.init = function() {
                 <button id="${this.prefix}-check" class="xlv-button"
                     style="display:none">${this.textLabels['check']}</button>
                 <button id="${this.prefix}-check-all" class="xlv-button"
-                    style="display:none">${this.textLabels['check-all']}</button>
+                  style="display:none">${this.textLabels['check-all']}</button>
               </div> <!-- xlv-button-row-1 -->
               <div id="${this.prefix}-button-row-2" class="xlv-controls-row">
                 <button id="${this.prefix}-reveal" class="xlv-button"
                     style="display:none">${this.textLabels['reveal']}</button>
                 <button id="${this.prefix}-ninas" class="xlv-button"
-                    style="display:none">${this.textLabels['show-ninas']}</button>
+                  style="display:none">${this.textLabels['show-ninas']}</button>
                 <button id="${this.prefix}-reveal-all" class="xlv-button"
-                    style="display:none">${this.textLabels['reveal-all']}</button>
+                  style="display:none">${this.textLabels['reveal-all']}</button>
               </div> <!-- xlv-button-row-2 -->
             </div> <!-- xlv-controls -->
             <div id="${this.prefix}-errors" class="xlv-errors"></div>
             <div id="${this.prefix}-status" class="xlv-status">
-              <span id="${this.prefix}-squares-filled">${this.textLabels['squares-filled']}</span>:
+              <span id="${this.prefix}-squares-filled"
+                  >${this.textLabels['squares-filled']}</span>:
               <span id="${this.prefix}-status-num-filled">0</span>/<span
                     id="${this.prefix}-status-num-total"></span>
             </div> <!-- xlv-status -->
             <div id="${this.prefix}-saving" class="xlv-wide-box xlv-saving">
               <span id="${this.prefix}-saving-msg">
-              ${this.textLabels['saving-msg']}
+              ${this.saveState ? this.textLabels['saving-msg'] : ''}
               </span>
             </div> <!-- xlv-saving -->
-            <div id="${this.prefix}-small-print" class="xlv-wide-box xlv-small-print">
+            <div id="${this.prefix}-small-print"
+                class="xlv-wide-box xlv-small-print">
               <div id="${this.prefix}-tools" style="display:none">
+                <div>
+                  <button id="${this.prefix}-manage-storage"
+                    class="xlv-small-button"
+                    title="${this.textLabels['manage-storage.hover']}">
+                    ${this.textLabels['manage-storage']}
+                  </button>
+                  <div id="${this.prefix}-storage-list"
+                    class="xlv-storage-list"
+                    style="display:none">
+                  </div>
+                </div>
                 <div id="${this.prefix}-tools-msg">
                   ${this.textLabels['tools-msg']}
                 </div>
@@ -372,15 +404,18 @@ Exolve.prototype.init = function() {
                   title="${this.textLabels['tools-link.hover']}"
                   >${this.textLabels['tools-link']}</a>
               <a id="${this.prefix}-report-bug"
-              href="https://github.com/viresh-ratnakar/exolve/issues/new">${this.textLabels['report-bug']}</a>
+                href="https://github.com/viresh-ratnakar/exolve/issues/new"
+                    >${this.textLabels['report-bug']}</a>
               <a id="${this.prefix}-exolve-link"
-                href="https://github.com/viresh-ratnakar/exolve">${this.textLabels['exolve-link']}</a>
+                href="https://github.com/viresh-ratnakar/exolve"
+                    >${this.textLabels['exolve-link']}</a>
               <span id="${this.prefix}-copyright"></span>
             </div> <!-- xlv-small-print -->
             <div id="${this.prefix}-questions" class="xlv-wide-box"></div>
             <div id="${this.prefix}-submit-parent">
               <button id="${this.prefix}-submit"
-                  class="xlv-button" style="display:none">${this.textLabels['submit']}</button>
+                  class="xlv-button" style="display:none"
+                      >${this.textLabels['submit']}</button>
             </div> <!-- submit-parent -->
             <div id="${this.prefix}-explanations" class="xlv-wide-box
                 xlv-explanations" style="display:none"></div>
@@ -388,27 +423,38 @@ Exolve.prototype.init = function() {
           <br/>
         </div> <!-- xlv-grid-panel -->
         <div id="${this.prefix}-clues" class="xlv-flex-row xlv-clues">
-          <div id="${this.prefix}-across-clues-panel" class="xlv-clues-box"
-              style="display:none">
-            <hr/>
-            <span id="${this.prefix}-across-label"
-                style="font-weight:bold">${this.textLabels['across-label']}</span>
-            <table id="${this.prefix}-across"></table>
-            <br/>
+          <div style="display:none">
+            <div id="${this.prefix}-across-label"
+                class="xlv-clues-box xlv-clues-label">
+              <hr/>
+              ${this.textLabels['across-label']}
+            </div>
+            <div id="${this.prefix}-across-clues-panel" class="xlv-clues-box">
+              <table id="${this.prefix}-across"></table>
+              <br/>
+            </div>
           </div>
-          <div id="${this.prefix}-down-clues-panel" class="xlv-clues-box"
-              style="display:none">
-            <hr/>
-            <span id="${this.prefix}-down-label"
-                style="font-weight:bold">${this.textLabels['down-label']}</span>
-            <table id="${this.prefix}-down"></table>
-            <br/>
+          <div style="display:none">
+            <div id="${this.prefix}-down-label"
+                class="xlv-clues-box xlv-clues-label">
+              <hr/>
+              ${this.textLabels['down-label']}
+            </div>
+            <div id="${this.prefix}-down-clues-panel" class="xlv-clues-box">
+              <table id="${this.prefix}-down"></table>
+              <br/>
+            </div>
           </div>
-          <div id="${this.prefix}-nodir-clues-panel"
-              class="xlv-clues-box" style="display:none">
-            <hr/>
-            <table id="${this.prefix}-nodir"></table>
-            <br/>
+          <div style="display:none">
+            <div id="${this.prefix}-nodir-label"
+                class="xlv-clues-box xlv-clues-label">
+              <hr/>
+            </div>
+            <div id="${this.prefix}-nodir-clues-panel"
+                class="xlv-clues-box">
+              <table id="${this.prefix}-nodir"></table>
+              <br/>
+            </div>
           </div>
         </div> <!-- xlv-clues -->
       </div>
@@ -416,11 +462,11 @@ Exolve.prototype.init = function() {
   `
 
   if (document.getElementById(this.prefix + '-frame')) {
-      this.throwErr('Element with id ' + this.prefix + 'frame already exists')
+    this.throwErr('Element with id ' + this.prefix + 'frame already exists')
   }
 
   if (!this.containerId) {
-      this.containerId = 'exolve'
+    this.containerId = 'exolve'
   }
   const exolveHolder = document.getElementById(this.containerId)
   if (exolveHolder) {
@@ -442,7 +488,8 @@ Exolve.prototype.init = function() {
   }
   let setter = document.getElementById(this.prefix + '-setter')
   if (this.setter) {
-    setter.innerHTML = `<span id="${this.prefix}-setter-by">${this.textLabels['setter-by']}</span> ${this.setter}`
+    setter.innerHTML = `<span id="${this.prefix}-setter-by"
+      >${this.textLabels['setter-by']}</span> ${this.setter}`
     setter.style.color = this.colorScheme['imp-text']
   } else {
     setter.style.display = 'none'
@@ -461,15 +508,20 @@ Exolve.prototype.init = function() {
 
   this.gridPanel = document.getElementById(this.prefix + '-grid-panel');
   this.svg = document.getElementById(this.prefix + '-grid');
-  this.gridInputWrapper = document.getElementById(this.prefix + '-grid-input-wrapper');
+  this.gridInputWrapper = document.getElementById(
+      this.prefix + '-grid-input-wrapper');
   this.gridInputWrapper.style.width = '' + this.squareDim + 'px'
   this.gridInputWrapper.style.height = '' + (this.squareDim - 2) + 'px'
   this.gridInputWrapper.insertAdjacentHTML('beforeend',
-    `<div id="${this.prefix}-grid-input-rarr" class="xlv-grid-input-rarr">&rtrif;</div>`)
+    `<div id="${this.prefix}-grid-input-rarr"
+        class="xlv-grid-input-rarr">&rtrif;</div>`)
   this.gridInputWrapper.insertAdjacentHTML('beforeend',
-    `<div id="${this.prefix}-grid-input-darr" class="xlv-grid-input-darr">&dtrif;</div>`)
-  this.gridInputRarr = document.getElementById(this.prefix + '-grid-input-rarr');
-  this.gridInputDarr = document.getElementById(this.prefix + '-grid-input-darr');
+    `<div id="${this.prefix}-grid-input-darr"
+        class="xlv-grid-input-darr">&dtrif;</div>`)
+  this.gridInputRarr = document.getElementById(
+      this.prefix + '-grid-input-rarr');
+  this.gridInputDarr = document.getElementById(
+      this.prefix + '-grid-input-darr');
   this.gridInputRarr.style.color = this.colorScheme['arrow']
   this.gridInputDarr.style.color = this.colorScheme['arrow']
   this.gridInputRarr.style.fontSize = this.arrowSize + 'px'
@@ -480,7 +532,8 @@ Exolve.prototype.init = function() {
 
   this.questions = document.getElementById(this.prefix + '-questions');
 
-  this.acrossPanel = document.getElementById(this.prefix + '-across-clues-panel')
+  this.acrossPanel = document.getElementById(
+      this.prefix + '-across-clues-panel')
   this.downPanel = document.getElementById(this.prefix + '-down-clues-panel')
   this.nodirPanel = document.getElementById(this.prefix + '-nodir-clues-panel')
   this.acrossClues = document.getElementById(this.prefix + '-across')
@@ -488,14 +541,18 @@ Exolve.prototype.init = function() {
   this.nodirClues = document.getElementById(this.prefix + '-nodir')
 
   this.currClue = document.getElementById(this.prefix + '-curr-clue')
-  this.currClueParent = document.getElementById(this.prefix + '-curr-clue-parent')
+  this.currClueParent = document.getElementById(
+      this.prefix + '-curr-clue-parent')
   this.ninaGroup = document.getElementById(this.prefix + '-nina-group')
 
-  this.statusNumFilled = document.getElementById(this.prefix + '-status-num-filled')
-  this.statusNumTotal = document.getElementById(this.prefix + '-status-num-total')
-  if (this.addStateToUrl) {
-    document.getElementById(this.prefix + '-saving').insertAdjacentHTML('beforeend',
-       `<span id="${this.prefix}-saving-bookmark">
+  this.statusNumFilled = document.getElementById(
+      this.prefix + '-status-num-filled')
+  this.statusNumTotal = document.getElementById(
+      this.prefix + '-status-num-total')
+  if (this.provideStateUrl) {
+    document.getElementById(this.prefix + '-saving').insertAdjacentHTML(
+        'beforeend',
+        `<span id="${this.prefix}-saving-bookmark">
            ${this.textLabels['saving-bookmark']} </span>
         <a id="${this.prefix}-saving-url" href="">URL</a>`);
     this.savingURL = document.getElementById(this.prefix + '-saving-url')
@@ -531,6 +588,9 @@ Exolve.prototype.init = function() {
 
   document.getElementById(this.prefix + '-tools-link').addEventListener(
         'click', this.toggleTools.bind(this));
+
+  document.getElementById(this.prefix + '-manage-storage').addEventListener(
+    'click', this.manageStorage.bind(this));
 
   this.scratchPad = document.getElementById(this.prefix + '-scratchpad')
   this.scratchPad.style.color = this.colorScheme['imp-text']
@@ -616,6 +676,14 @@ Exolve.prototype.parseOverall = function() {
     } else if (parsedSec.section == 'colour' ||
                parsedSec.section == 'color') {
       this.parseColour(parsedSec.value)
+    } else if (parsedSec.section == 'force-hyphen-right') {
+      this.parseForcedSep(parsedSec.value, parsedSec.section)
+    } else if (parsedSec.section == 'force-hyphen-below') {
+      this.parseForcedSep(parsedSec.value, parsedSec.section)
+    } else if (parsedSec.section == 'force-bar-right') {
+      this.parseForcedSep(parsedSec.value, parsedSec.section)
+    } else if (parsedSec.section == 'force-bar-below') {
+      this.parseForcedSep(parsedSec.value, parsedSec.section)
     } else if (parsedSec.section == 'question') {
       this.questionTexts.push(parsedSec.value)
     } else if (parsedSec.section == 'submit') {
@@ -629,6 +697,7 @@ Exolve.prototype.parseOverall = function() {
     } else if (parsedSec.section == 'nodir') {
       this.nodirFirstLine = firstLine
       this.nodirLastLine = lastLine
+      this.nodirHeading = parsedSec.value
     } else if (parsedSec.section == 'option') {
       this.parseOption(parsedSec.value)
     } else if (parsedSec.section == 'language') {
@@ -723,6 +792,20 @@ Exolve.prototype.parseColour = function(s) {
   }
 }
 
+Exolve.prototype.parseForcedSep = function(s, section) {
+  let parsedCells = s.split(' ')
+  for (let c of parsedCells) {
+    if (!c) {
+      continue
+    }
+    let cellLocation = this.parseCellLocation(c)
+    if (!cellLocation) {
+      continue
+    }
+    this.forcedSeps[section].push(cellLocation)
+  }
+}
+
 Exolve.prototype.answerListener = function(answer, forceUpper) {
   this.deactivateCurrCell()
   this.deactivateCurrClue()
@@ -746,20 +829,9 @@ Exolve.prototype.displayQuestions = function() {
     let inputLen = enumParse.placeholder.length
 
     let afterEnum = enumParse.afterEnum
-    let rawQ = s.substr(0, afterEnum)
+    let rawQ = s.substr(0, enumParse.afterClue)
 
-    let hideEnum = false
-    if (inputLen > 0) {
-      if (s.substr(afterEnum, 1) == '*') {
-        let beforeEnum = s.lastIndexOf('(', afterEnum - 1)
-        if (beforeEnum < 0) {
-          this.throwErr('Could not find open-paren in question')
-        }
-        rawQ = s.substr(0, beforeEnum)
-        afterEnum++
-        hideEnum = true
-      }
-    }
+    let hideEnum = (inputLen > 0 && enumParse.dontShow);
     s = s.substr(afterEnum).trim();
 
     let forceUpper = true;
@@ -812,12 +884,14 @@ Exolve.prototype.displayQuestions = function() {
     if (rows == 1) {
       answer.setAttributeNS(null, 'type', 'text');
     }
-    answer.setAttributeNS(null, 'maxlength', '' + inputLen * this.langMaxCharCodes);
+    answer.setAttributeNS(null, 'maxlength',
+                          '' + inputLen * this.langMaxCharCodes);
     answer.setAttributeNS(null, 'autocomplete', 'off');
     answer.setAttributeNS(null, 'spellcheck', 'false');
     question.appendChild(answer)
     this.questions.appendChild(question)
-    answer.addEventListener('input', this.answerListener.bind(this, answer, forceUpper));
+    answer.addEventListener(
+        'input', this.answerListener.bind(this, answer, forceUpper));
   }
 }
 
@@ -860,7 +934,8 @@ Exolve.prototype.parseOption = function(s) {
     if (kv[0] == 'clues-panel-lines') {
       this.cluesPanelLines = parseInt(kv[1])
       if (isNaN(this.cluesPanelLines)) {
-        this.throwErr('Unexpected val in exolve-option: clue-panel-lines: ' + kv[1])
+        this.throwErr('Unexpected val in exolve-option: clue-panel-lines: ' +
+                      kv[1])
       }
       continue
     }
@@ -927,7 +1002,8 @@ Exolve.prototype.parseLanguage = function(s) {
 // Extracts the prelude from its previously identified lines and sets up
 // its display.
 Exolve.prototype.parseAndDisplayPrelude = function() {
-  if (this.preludeFirstLine >= 0 && this.preludeFirstLine <= this.preludeLastLine) {
+  if (this.preludeFirstLine >= 0 &&
+      this.preludeFirstLine <= this.preludeLastLine) {
     let preludeText = this.specLines[this.preludeFirstLine]
     let l = this.preludeFirstLine + 1
     while (l <= this.preludeLastLine) {
@@ -946,7 +1022,8 @@ Exolve.prototype.parseAndDisplayPS = function() {
       psText = psText + '\n' + this.specLines[l]
       l++;
     }
-    psHTML = `<div id='${this.prefix}-postscript' class='xlv-postscript'><hr> ${psText} </div>`;
+    psHTML = `<div id='${this.prefix}-postscript'
+      class='xlv-postscript'><hr> ${psText} </div>`;
     this.frame.insertAdjacentHTML('beforeend', psHTML);
   }
 }
@@ -1355,7 +1432,7 @@ Exolve.prototype.markClueStartsUsingGrid = function() {
   }
 }
 
-  // If there are any html closing tags, move past them.
+// If there are any html closing tags, move past them.
 Exolve.prototype.adjustAfterEnum = function(clueLine, afterEnum) {
   let lineAfter = clueLine.substr(afterEnum)
   while (lineAfter.trim().substr(0, 2) == '</') {
@@ -1406,14 +1483,18 @@ Exolve.prototype.parseCellLocation = function(s) {
 // enumLen
 // hyphenAfter[] (0-based indices)
 // wordEndAfter[] (0-based indices)
+// afterClue index after clue
 // afterEnum index after enum
+// dontShow if enum is followed immediately by *
 // placeholder (something like ???? ???-?'?)
 Exolve.prototype.parseEnum = function(clueLine) {
   let parse = {
     enumLen: 0,
     wordEndAfter: [],
     hyphenAfter: [],
+    afterClue: clueLine.length,
     afterEnum: clueLine.length,
+    dontShow: false,
     placeholder: '',
   };
   let enumLocation = clueLine.search(/\([1-9]+[0-9\-,\.'’\s]*\)/)
@@ -1426,7 +1507,14 @@ Exolve.prototype.parseEnum = function(clueLine) {
       if (enumEndLocation <= enumLocation) {
         return parse
       }
-      parse.afterEnum = this.adjustAfterEnum(clueLine, enumEndLocation + 1)
+      if (clueLine.charAt(enumEndLocation + 1) == '*') {
+        parse.afterEnum = enumEndLocation + 2;
+        parse.afterClue = enumLocation;
+        parse.dontShow = true;
+      } else {
+        parse.afterEnum = this.adjustAfterEnum(clueLine, enumEndLocation + 1)
+        parse.afterClue = parse.afterEnum;
+      }
     }
     return parse
   }
@@ -1435,7 +1523,14 @@ Exolve.prototype.parseEnum = function(clueLine) {
   if (enumEndLocation <= enumLocation) {
     return parse
   }
-  parse.afterEnum = this.adjustAfterEnum(clueLine, enumEndLocation + 1)
+  if (clueLine.charAt(enumEndLocation + 1) == '*') {
+    parse.afterEnum = enumEndLocation + 2;
+    parse.afterClue = enumLocation;
+    parse.dontShow = true;
+  } else {
+    parse.afterEnum = this.adjustAfterEnum(clueLine, enumEndLocation + 1)
+    parse.afterClue = parse.afterEnum;
+  }
   let enumLeft = clueLine.substring(enumLocation + 1, enumEndLocation)
   let nextPart
   while (enumLeft && (nextPart = parseInt(enumLeft)) && !isNaN(nextPart) &&
@@ -1741,8 +1836,8 @@ Exolve.prototype.parseClue = function(dir, clueLine) {
   clue.hyphenAfter = enumParse.hyphenAfter
   clue.wordEndAfter = enumParse.wordEndAfter
   clue.placeholder = enumParse.placeholder
-  clue.clue = clueLine.substr(0, enumParse.afterEnum).trim()
-  clue.anno = clueLine.substr(enumParse.afterEnum).trim()
+  clue.clue = clueLine.substr(0, enumParse.afterClue).trim()
+  clue.anno = clueLine.substr(enumParse.afterEnum).trim();
 
   this.setClueCellsDgmless(clue);
 
@@ -1938,6 +2033,7 @@ Exolve.prototype.parseClueLists = function() {
     }
     let filler = ''
     let startNewTable = false
+    let newTableHeading = ''
     for (let l = first; l <= last; l++) {
       let clueLine = this.specLines[l].trim();
       if (clueLine == '') {
@@ -1945,6 +2041,7 @@ Exolve.prototype.parseClueLists = function() {
       }
       if (clueLine.substr(0, 3) == '---') {
         startNewTable = true
+        newTableHeading = clueLine.substr(3).trim()
         continue;
       }
       let clue = this.parseClue(clueDirection, clueLine)
@@ -2019,7 +2116,9 @@ Exolve.prototype.parseClueLists = function() {
       }
       if (startNewTable) {
         clue.startNewTable = true
+        clue.newTableHeading = newTableHeading
         startNewTable = false
+        newTableHeading = ''
       }
 
       if (clue.clue) {
@@ -2099,7 +2198,8 @@ Exolve.prototype.allCellsKnown = function(clueIndex) {
     }
     if (this.clues[ci].cells.length > 0) {
       numCells += this.clues[ci].cells.length
-    } else if (this.clues[ci].cellsOfOrphan && this.clues[ci].cellsOfOrphan.length > 0) {
+    } else if (this.clues[ci].cellsOfOrphan &&
+               this.clues[ci].cellsOfOrphan.length > 0) {
       numCells += this.clues[ci].cellsOfOrphan.length
     } else {
       return false
@@ -2319,7 +2419,8 @@ Exolve.prototype.processClueChildren = function() {
 
 Exolve.prototype.roughlyStartsWith = function(s, prefix) {
   const punct = /[\s'.,-]*/gi
-  let normS = s.trim().replace(/<[^>]*>/gi, '').replace(punct, '').trim().toUpperCase();
+  let normS = s.trim().replace(/<[^>]*>/gi, '').replace(
+                  punct, '').trim().toUpperCase();
   let normP = prefix.trim().replace(punct, '').trim().toUpperCase();
   return normS.startsWith(normP);
 }
@@ -2357,20 +2458,45 @@ Exolve.prototype.finalClueTweaks = function() {
       label = label + ' '
     }
     if (!this.allCellsKnown(clueIndex)) {
-      theClue.fullDisplayLabel = `<span class="xlv-clickable"><span id="${this.prefix}-curr-clue-label" class="xlv-curr-clue-label"
+      theClue.fullDisplayLabel = `<span class="xlv-clickable"><span
+        id="${this.prefix}-curr-clue-label" class="xlv-curr-clue-label"
         title="${this.textLabels['mark-clue.hover']}">${label}</span></span>`
     } else {
-      theClue.fullDisplayLabel = `<span id="${this.prefix}-curr-clue-label" class="xlv-curr-clue-label">
-          ${label}</span>`;
+      theClue.fullDisplayLabel = `<span id="${this.prefix}-curr-clue-label"
+        class="xlv-curr-clue-label">${label}</span>`;
     }
   }
 }
 
-// Using hyphenAfter[] and wordEndAfter[] in clues, set
-// {hyphen,wordEnd}{ToRight,Below} in grid[i][j]s.
+// Using hyphenAfter[] and wordEndAfter[] in clues as well as from
+// exolve-force-*, set {hyphen,wordEnd}{ToRight,Below} in grid[i][j]s.
 Exolve.prototype.setWordEndsAndHyphens = function() {
+  for (c of this.forcedSeps['force-hyphen-right']) {
+    if (c[0] >= 0 && c[0] < this.gridHeight &&
+        c[1] >= 0 && c[1] < this.gridWidth) {
+      this.grid[c[0]][c[1]].hyphenToRight = true
+    }
+  }
+  for (c of this.forcedSeps['force-hyphen-below']) {
+    if (c[0] >= 0 && c[0] < this.gridHeight &&
+        c[1] >= 0 && c[1] < this.gridWidth) {
+      this.grid[c[0]][c[1]].hyphenBelow = true
+    }
+  }
+  for (c of this.forcedSeps['force-bar-right']) {
+    if (c[0] >= 0 && c[0] < this.gridHeight &&
+        c[1] >= 0 && c[1] < this.gridWidth) {
+      this.grid[c[0]][c[1]].wordEndToRight = true
+    }
+  }
+  for (c of this.forcedSeps['force-bar-below']) {
+    if (c[0] >= 0 && c[0] < this.gridHeight &&
+        c[1] >= 0 && c[1] < this.gridWidth) {
+      this.grid[c[0]][c[1]].wordEndBelow = true
+    }
+  }
   if (this.hasDgmlessCells) {
-    // Give up on this
+    // Give up on setting from clues.
     return
   }
   // Going across
@@ -2650,9 +2776,15 @@ Exolve.prototype.setUpGnav = function() {
 }
 
 Exolve.prototype.applyStyles = function() {
-  let customStyles = document.createElement('style')
+  let id = `${this.prefix}-added-style`
+  let customStyles = document.getElementById(id)
+  if (!customStyles) {
+    customStyles = document.createElement('style')
+    customStyles.id = id
+    this.frame.appendChild(customStyles);
+  }
   customStyles.innerHTML = `
-    .xlv-frame {
+    #${this.prefix}-frame {
       font-size: ${this.letterSize}px;
       font-family: serif;
       font-weight: 400;
@@ -2684,7 +2816,6 @@ Exolve.prototype.applyStyles = function() {
       background-color: ${this.colorScheme['small-button-hover']};
     }
   `;
-  document.body.appendChild(customStyles);
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {
@@ -2711,7 +2842,8 @@ Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
         skip = close + 1 - idx
       }
     }
-    html = html + '<span class="xlv-in-clue-anno">' + clueText.substring(idx + skip, endIdx) + '</span>'
+    html = html + '<span class="xlv-in-clue-anno">' +
+           clueText.substring(idx + skip, endIdx) + '</span>'
     endIdx += 2
     idx = clueText.indexOf('~{', endIdx)
   }
@@ -2725,7 +2857,8 @@ Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
     return
   }
   let inClueAnnoSpans = elt.getElementsByClassName('xlv-in-clue-anno')
-  console.assert(inClueAnnoSpans.length == clue.inClueAnnos.length, inClueAnnoSpans, clue)
+  console.assert(inClueAnnoSpans.length ==
+                 clue.inClueAnnos.length, inClueAnnoSpans, clue)
   for (let s = 0; s < inClueAnnoSpans.length; s++) {
     let c = clue.inClueAnnos[s]
     if (!clue.inClueAnnoReveals[c]) {
@@ -2771,14 +2904,23 @@ Exolve.prototype.displayClues = function() {
       let newPanel = document.createElement('div')
       newPanel.setAttributeNS(null, 'class',
                               'xlv-clues-box xlv-clues-extra-panel');
-      newPanel.appendChild(document.createElement('hr'))
       let newTable = document.createElement('table')
       newPanel.appendChild(newTable)
       newPanel.appendChild(document.createElement('br'))
       extraPanels.push(newPanel)
 
-      let tableParent = table.parentElement
-      tableParent.parentElement.insertBefore(newPanel, tableParent.nextSibling)
+      const newPanelInDiv = document.createElement('div')
+      newPanelInDiv.insertAdjacentHTML(
+        'afterbegin',
+        `<div class="xlv-clues-box xlv-clues-label">
+          <hr>
+          ${theClue.newTableHeading}
+        </div>`);
+      newPanelInDiv.appendChild(newPanel)
+
+      let tableGrandParent = table.parentElement.parentElement
+      tableGrandParent.parentElement.insertBefore(
+        newPanelInDiv, tableGrandParent.nextSibling)
       table = newTable
     }
     if (theClue.filler) {
@@ -2879,13 +3021,17 @@ Exolve.prototype.displayClues = function() {
     }
   }
   if (this.hasAcrossClues) {
-    this.acrossPanel.style.display = ''
+    this.acrossPanel.parentElement.style.display = ''
   }
   if (this.hasDownClues) {
-    this.downPanel.style.display = ''
+    this.downPanel.parentElement.style.display = ''
   }
   if (this.hasNodirClues) {
-    this.nodirPanel.style.display = ''
+    this.nodirPanel.parentElement.style.display = ''
+    if (this.nodirHeading) {
+      document.getElementById(this.prefix + '-nodir-label').
+        insertAdjacentHTML('beforeend', this.nodirHeading);
+    }
   }
 }
 
@@ -2896,9 +3042,11 @@ Exolve.prototype.computeGridSize = function(maxDim) {
   }
   this.squareDim = 31
   if (this.gridWidth <= 30 &&  // For jumbo grids, give up.
-      (this.squareDim + this.GRIDLINE) * this.gridWidth + this.GRIDLINE > viewportDim - 8) {
-    this.squareDim = Math.max(20,
-      Math.floor((viewportDim - 8 - this.GRIDLINE) / this.gridWidth) - this.GRIDLINE)
+      (this.squareDim + this.GRIDLINE) * this.gridWidth + this.GRIDLINE >
+      viewportDim - 8) {
+    this.squareDim = Math.max(12,
+      Math.floor((viewportDim - 8 - this.GRIDLINE) /
+                 this.gridWidth) - this.GRIDLINE)
   }
   this.squareDimBy2 = Math.floor((this.squareDim + 1) / 2)
   this.numberStartY = Math.floor(this.squareDim / 3)
@@ -2913,9 +3061,9 @@ Exolve.prototype.computeGridSize = function(maxDim) {
                    ((this.gridHeight + 1) * this.GRIDLINE)
   this.textAreaCols = Math.min(65,
                                Math.max(30, Math.floor((viewportDim - 8) / 8)))
-  this.letterSize = Math.max(10, this.squareDimBy2)
-  this.numberSize = 1 + Math.max(7, Math.floor(this.squareDim / 3) - 1)
-  this.arrowSize = Math.max(8, Math.floor(13 * this.squareDim / 31))
+  this.letterSize = Math.max(8, this.squareDimBy2)
+  this.numberSize = 1 + Math.max(5, Math.floor(this.squareDim / 3) - 1)
+  this.arrowSize = Math.max(6, Math.floor(13 * this.squareDim / 31))
 }
 
 Exolve.prototype.displayGridBackground = function() {
@@ -2976,7 +3124,8 @@ Exolve.prototype.updateDisplayAndGetState = function() {
   this.checkButton.disabled = (this.activeCells.length == 0) && !revOrphan
   let theClue = this.clues[ci]
   let haveReveals = (this.activeCells.length > 0 && !this.hasUnsolvedCells) ||
-      (theClue && (theClue.anno || theClue.solution || revOrphan || theClue.inClueAnnos.length > 0));
+      (theClue && (theClue.anno || theClue.solution ||
+                   revOrphan || theClue.inClueAnnos.length > 0));
   if (!haveReveals && this.szCellsToOrphan > 0 && this.activeCells.length > 0) {
     let orphanClue = this.cellsToOrphan[JSON.stringify(this.activeCells)];
     if (orphanClue) {
@@ -2986,7 +3135,8 @@ Exolve.prototype.updateDisplayAndGetState = function() {
     }
   }
   this.revealButton.disabled = !haveReveals;
-  this.clearButton.disabled = this.revealButton.disabled && this.activeCells.length == 0;
+  this.clearButton.disabled = this.revealButton.disabled &&
+                              this.activeCells.length == 0;
   return state
 }
 
@@ -3004,41 +3154,35 @@ Exolve.prototype.myStatePart = function(s) {
   return [start, end]
 }
 
-// Call updateDisplayAndGetState() and save state in cookie and location.hash.
+// Call updateDisplayAndGetState() and save state in local storage.
 Exolve.prototype.updateAndSaveState = function() {
   let state = this.updateDisplayAndGetState()
   for (let a of this.answersList) {
     state = state + this.STATE_SEP + a.input.value
   }
 
-  // Keep cookie for these many days
-  const KEEP_FOR_DAYS = 90
-
-  let d = new Date();
-  d.setTime(d.getTime() + (KEEP_FOR_DAYS * 24 * 60 * 60 * 1000));
-  let expires = 'expires=' + d.toUTCString();
-  document.cookie = this.id + '=' + state +
-                    '; samesite=none; secure; ' + expires + ';path=/';
-
-  if (this.savingURL) {
-    // Also save the state in location.hash.
-    let lh = location.hash || '#'
-    let myPart = this.myStatePart(lh)
-    if (myPart[0] < 0) {
-      lh = lh + this.STATES_SEP + this.id + state
-    } else {
-      lh = lh.substr(0, myPart[0]) +
-           this.STATES_SEP + this.id + state +
-           lh.substring(myPart[1])
-    }
-    location.hash = lh
-    // Update savingURL.href for *all* puzzles
-    for (let pid in exolvePuzzles) {
-      let p = exolvePuzzles[pid]
-      if (p.savingURL) {
-        p.savingURL.href = location.href
+  if (this.saveState) {
+    try {
+      let lsVal = JSON.stringify({
+        timestamp: Date.now(),
+        state: state
+      });
+      window.localStorage.setItem(this.stateKey(), lsVal);
+    } catch (err) {
+      if (!this.warnedAboutLocalStorage) {
+        alert('Could not save state in local storage! Click on ' +
+              'Tools > Manage local storage to delete state from ' +
+              'old crosswords, perhaps.');
+        this.warnedAboutLocalStorage = true;
       }
     }
+  }
+
+  if (this.savingURL) {
+    // Also provide a URL that saves the state in location.hash.
+    const url = new URL(location.href);
+    url.hash = '#' + this.STATES_SEP + this.id + state;
+    this.savingURL.href = url.href;
   }
 }
 
@@ -3128,7 +3272,8 @@ Exolve.prototype.parseState = function(state) {
 
   // Also try to recover answers to questions and orphan-fills.
   if (state.substr(index, this.STATE_SEP.length) == this.STATE_SEP) {
-    let parts = state.substr(index + this.STATE_SEP.length).split(this.STATE_SEP)
+    let parts = state.substr(index + this.STATE_SEP.length).split(
+        this.STATE_SEP)
     if (parts.length == this.answersList.length) {
       for (let i = 0; i < parts.length; i++) {
         this.answersList[i].input.value = parts[i]
@@ -3138,37 +3283,54 @@ Exolve.prototype.parseState = function(state) {
   return true
 }
 
-// Restore state from cookie (or location.hash).
+Exolve.prototype.stateKey = function() {
+  return 'xlvstate:' + this.id;
+}
+
+// Restore state from local storage or cookie (or location.hash).
 Exolve.prototype.restoreState = function() {
   this.resetState();
   let foundState = false
 
-  let name = this.id + '=';
-  let ca = decodeURIComponent(document.cookie).split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i].trim();
-    if (c.indexOf(name) == 0) {
-      foundState = this.parseState(c.substring(name.length, c.length));
+  let lsVal = window.localStorage.getItem(this.stateKey());
+  if (lsVal) {
+    try {
+      let decoded = JSON.parse(lsVal)
+      foundState = this.parseState(decoded.state);
       if (foundState) {
-        this.log('Found saved state in cookie')
+        this.log("Found saved state in browser's local storage")
       }
-      break
+    } catch (err) {
+      foundState = false;
     }
   }
   if (!foundState) {
-    try {
-      let lh = decodeURIComponent(location.hash.substr(1))
-      let myPart = this.myStatePart(lh)
-      if (myPart[0] >= 0) {
+    let name = this.id + '=';
+    let ca = decodeURIComponent(document.cookie).split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i].trim();
+      if (c.indexOf(name) == 0) {
+        foundState = this.parseState(c.substring(name.length, c.length));
+        if (foundState) {
+          this.log('Found saved state in cookie')
+        }
+        break
+      }
+    }
+  }
+  try {
+    let lh = decodeURIComponent(location.hash.substr(1))
+    let myPart = this.myStatePart(lh)
+    if (myPart[0] >= 0) {
+      if (!foundState || this.maybeConfirm(this.textLabels['confirm-state-override'])) {
         foundState = this.parseState(lh.substring(
             myPart[0] + this.STATES_SEP.length + this.id.length, myPart[1]))
         if (foundState) {
           this.log('Found saved state in url')
         }
       }
-    } catch (e) {
-      foundState = false
     }
+  } catch (e) {
   }
   if (this.index == 0 && this.savingURL) {
     location.hash = ''  // Clear, including any legacy-format state
@@ -3234,6 +3396,10 @@ Exolve.prototype.clueOrParentIndex = function(ci) {
     return this.clues[ci].parentClueIndex
   }
   return ci
+}
+Exolve.prototype.maybeConfirm = function(msg) {
+  if (!msg) return true;
+  return confirm(msg);
 }
 // ------------------------
 
@@ -3477,9 +3643,11 @@ Exolve.prototype.getLinkedClues = function(clueIndex) {
 Exolve.prototype.getCurrClueButtons = function() {
   return `<span>
       <button id="${this.prefix}-curr-clue-prev" class="xlv-small-button"
-      title="${this.textLabels['curr-clue-prev.hover']}">${this.textLabels['curr-clue-prev']}</button>
+      title="${this.textLabels['curr-clue-prev.hover']}"
+          >${this.textLabels['curr-clue-prev']}</button>
       <button id="${this.prefix}-curr-clue-next" class="xlv-small-button"
-      title="${this.textLabels['curr-clue-next.hover']}">${this.textLabels['curr-clue-next']}</button></span>`;
+      title="${this.textLabels['curr-clue-next.hover']}"
+          >${this.textLabels['curr-clue-next']}</button></span>`;
 }
 
 Exolve.prototype.cnavNext = function() {
@@ -3654,8 +3822,10 @@ Exolve.prototype.copyOrphanEntry = function(clueIndex) {
     return
   }
   if (letters.length != this.activeCells.length) {
-    if (!confirm(this.textLabels['confirm-mismatched-copy'] + ' ' +
-                 letters.length + ':' + this.activeCells.length)) {
+    let msg = this.textLabels['confirm-mismatched-copy']
+    if (msg &&
+        !this.maybeConfirm(msg + ' ' + letters.length +
+                           ':' + this.activeCells.length)) {
       return
     }
   }
@@ -3795,25 +3965,28 @@ Exolve.prototype.addOrphanUI =
 
 Exolve.prototype.followDirOrder = function() {
   // Reorder clue panels if needed.
+  const across = this.acrossPanel.parentElement;
+  const down = this.downPanel.parentElement;
+  const nodir = this.nodirPanel.parentElement;
   if (this.dirOrder['A'] < this.dirOrder['X'] &&
       this.dirOrder['X'] < this.dirOrder['D']) {
-    this.acrossPanel.after(this.nodirPanel)
+    across.after(nodir)
   } else if (this.dirOrder['D'] < this.dirOrder['X'] &&
              this.dirOrder['X'] < this.dirOrder['A']) {
-    this.nodirPanel.after(this.acrossPanel)
+    nodir.after(across)
     this.currDir = 'D'
   } else if (this.dirOrder['D'] < this.dirOrder['A'] &&
              this.dirOrder['A'] < this.dirOrder['X']) {
-    this.downPanel.after(this.acrossPanel)
+    down.after(across)
     this.currDir = 'D'
   } else if (this.dirOrder['X'] < this.dirOrder['A'] &&
              this.dirOrder['A'] < this.dirOrder['D']) {
-    this.acrossPanel.before(this.nodirPanel)
+    across.before(nodir)
     this.currDir = 'X'
   } else if (this.dirOrder['X'] < this.dirOrder['D'] &&
              this.dirOrder['D'] < this.dirOrder['A']) {
-    this.nodirPanel.after(this.downPanel)
-    this.downPanel.after(this.acrossPanel)
+    nodir.after(down)
+    down.after(across)
     this.currDir = 'X'
   }
 }
@@ -4514,7 +4687,9 @@ Exolve.prototype.displayGrid = function() {
 }
 
 // API for customization: add small text to cell
-Exolve.prototype.addCellText = function(row, col, text, h=16, w=10, atTop=true, toRight=false) {
+Exolve.prototype.addCellText = function(row, col, text,
+                                        h=16, w=10,
+                                        atTop=true, toRight=false) {
   if (row < 0 || row >= this.gridHeight ||
       col < 0 || col >= this.gridWidth) {
     return
@@ -4623,7 +4798,7 @@ Exolve.prototype.toggleNinas = function() {
   if (this.showingNinas) {
     this.hideNinas()
   } else {
-    if (!confirm(this.textLabels['confirm-show-ninas'])) {
+    if (!this.maybeConfirm(this.textLabels['confirm-show-ninas'])) {
       return
     }
     this.showNinas()
@@ -4767,9 +4942,9 @@ Exolve.prototype.clearAll = function(conf=true) {
       message = this.textLabels['confirm-clear-all-orphans1']
     }
   }
-  if (conf && !confirm(message)) {
+  if (conf && !this.maybeConfirm(message)) {
     this.refocus()
-    return
+    return false
   }
   for (let row = 0; row < this.gridHeight; row++) {
     for (let col = 0; col < this.gridWidth; col++) {
@@ -4818,6 +4993,7 @@ Exolve.prototype.clearAll = function(conf=true) {
   }
   this.updateAndSaveState()
   this.refocus()
+  return true
 }
 
 Exolve.prototype.cellLightTogglerDone = function(button, text) {
@@ -4915,7 +5091,7 @@ Exolve.prototype.checkCurr = function() {
 }
 
 Exolve.prototype.checkAll = function(conf=true, erase=true) {
-  if (conf && !confirm(this.textLabels['confirm-check-all'])) {
+  if (conf && !this.maybeConfirm(this.textLabels['confirm-check-all'])) {
     this.refocus()
     return false
   }
@@ -5067,7 +5243,7 @@ Exolve.prototype.revealCurr = function() {
 }
 
 Exolve.prototype.revealAll = function(conf=true) {
-  if (conf && !confirm(this.textLabels['confirm-reveal-all'])) {
+  if (conf && !this.maybeConfirm(this.textLabels['confirm-reveal-all'])) {
     this.refocus()
     return
   }
@@ -5158,7 +5334,7 @@ Exolve.prototype.submitSolution = function() {
   if (this.numCellsFilled != this.numCellsToFill) {
     message = this.textLabels['confirm-incomplete-submit']
   }
-  if (!confirm(message)) {
+  if (!this.maybeConfirm(message)) {
     return
   }
   let fullSubmitURL = this.submitURL + '&' + this.submitKeys[0] + '=' +
@@ -5214,6 +5390,107 @@ Exolve.prototype.toggleTools = function(e) {
   e.preventDefault()
 }
 
+Exolve.prototype.deleteStorage = function(id, timestamp) {
+  if (id) {
+    if (!this.maybeConfirm(this.textLabels['confirm-delete-id'] +
+                           ' ' + id + '?')) {
+      return
+    }
+  } else {
+    if (!this.maybeConfirm(this.textLabels['confirm-delete-older'] + ' ' +
+                 (new Date(timestamp)).toLocaleString() + '?')) {
+      return
+    }
+  }
+  document.getElementById(this.prefix + '-storage-list').style.display = 'none';
+  if (id) {
+    window.localStorage.removeItem('xlvstate:' + id);
+  } else {
+    for (let idx = 0; idx < window.localStorage.length; idx++) {
+      let key = window.localStorage.key(idx)
+      if (!key.startsWith('xlvstate:')) {
+        continue;
+      }
+      let lsVal;
+      try {
+        lsVal = JSON.parse(window.localStorage.getItem(key));
+      } catch (err) {
+        continue;
+      }
+      if (lsVal.timestamp < timestamp) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  }
+  this.manageStorage(null);
+}
+
+Exolve.prototype.manageStorage = function(e) {
+  let b = document.getElementById(this.prefix + '-manage-storage')
+  let slist = document.getElementById(this.prefix + '-storage-list')
+  if (slist.style.display == 'none') {
+    b.title = this.textLabels['manage-storage-close.hover']
+    let saved = [];
+    let bytes = 0;
+    for (let idx = 0; idx < window.localStorage.length; idx++) {
+      let key = window.localStorage.key(idx)
+      if (!key.startsWith('xlvstate:')) {
+        continue;
+      }
+      bytes += key.length;
+      let lsVal;
+      try {
+        lsVal = window.localStorage.getItem(key);
+        bytes += lsVal.length;
+        lsVal = JSON.parse(lsVal);
+      } catch (err) {
+        continue;
+      }
+      saved.push({
+        timestamp: lsVal.timestamp,
+        id: key.substr(9)
+      });
+    }
+    b.innerText = this.textLabels['manage-storage-close'] +
+                  ' ' + (bytes/1024).toFixed(1) + ' KB';
+    saved.sort(function(a, b) {return b.timestamp - a.timestamp;});
+    let html = '<table>'
+    let x = 0
+    for (let s of saved) {
+      html += `
+      <tr>
+        <td>${s.id}</td>
+        <td><button class="xlv-small-button"
+               title="Delete this puzzle's saved state"
+               id="${this.prefix}-delstor-${x}">
+                 &times; this</button></td>
+        <td><button class="xlv-small-button"
+               title="Delete saved states for ALL puzzles older than this"
+               id="${this.prefix}-delprev-${x}">
+                 &times older</button></td>
+        <td>${(new Date(s.timestamp)).toLocaleString()}</td>
+      </tr>
+      `;
+      x += 1;
+    }
+    html += '<table>'
+    slist.innerHTML = html
+    x = 0
+    for (let s of saved) {
+      document.getElementById(`${this.prefix}-delstor-${x}`).
+        addEventListener('click', this.deleteStorage.bind(this, `${s.id}`, 0));
+      document.getElementById(`${this.prefix}-delprev-${x}`).
+        addEventListener('click', this.deleteStorage.bind(this, '', s.timestamp));
+      x += 1;
+    }
+    slist.style.display = ''
+  } else {
+    slist.style.display = 'none'
+    b.innerText = this.textLabels['manage-storage']
+    b.title = this.textLabels['manage-storage.hover']
+  }
+}
+
 Exolve.prototype.createPuzzle = function() {
   this.init()
 
@@ -5256,19 +5533,17 @@ Exolve.prototype.createPuzzle = function() {
  * See documentation of parameters above the Exolve constructor definition.
  */
 function createExolve(puzzleText, containerId="",
-                      addStateToUrl=true, visTop=0, maxDim=0) {
+                      provideStateUrl=true, visTop=0, maxDim=0) {
   const customizer = (typeof customizeExolve === 'function') ?
       customizeExolve : null;
   let p = new Exolve(puzzleText, containerId, customizer,
-                     addStateToUrl, visTop, maxDim);
+                     provideStateUrl, visTop, maxDim);
 }
 
 /*
  * The global variable "puzzleText" should have been set to the puzzle specs.
- * inIframe can be set to true if the puzzle is embedded in an iframe, which
- *     will then set addStateToUrl to false.
- * @deprecated use createExolve().
+ * @deprecated use createExolve() or the Exolve() constructor.
  */
-function createPuzzle(inIframe=false) {
-  createExolve(puzzleText, "", !inIframe);
+function createPuzzle() {
+  createExolve(puzzleText, "");
 }

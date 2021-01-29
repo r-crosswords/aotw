@@ -1,5 +1,66 @@
 # Changelog
 
+### Version: Exolve v1.01 January 24 2021
+
+- Extend the responsive rendering to smaller displays by allowing even
+  smaller grid square dimensions (and with some CSS tweaks).
+- Keep clues table headings in a separate div. This is especially
+  useful when using the `clues-panel-lines option`, as now the heading
+  will not scroll away with the clues.
+- Allow "nodir" clues table as well as extra clue tables created using
+  `---` to have their own headings. The heading is specified right
+  after `exolve-nodir:` or `---`.
+- When there is saved state in the URL as well as in the local storage,
+  prompt the user to ask if they want to override the local storage state.
+
+### Version: Exolve v1.00 January 20 2021
+
+- Stop saving state in cookies. Stop including state in URL (but still provide
+  URL for saving.sharing). Change the name of the addStateToUrl constructor
+  param to the now-more-apt provideStateUrl.
+- Create a saveState constructor param, defaulting to true. Can be set to
+  false for creating throwaway grids such as previews.
+- Provide an interface to see all the local-storage-saved states and delete
+  some of them if needed. The interface also shows the amount of local
+  storage used up in saved Exolve states.
+
+### Version: Exolve v0.99 January 2 2021
+
+- Save puzzle state in the browser's local storage (in addition to cookies).
+- Make exolve-player create the puzzle id from a hash of puz/ipuz file contents
+  for these formats. This + the above change means that we now save and
+  recover state for these formats, when loading in exolve-player.
+- Turn off URL-saving in exolve-player as it does not make sense.
+
+### Version: Exolve v0.98 December 15 2020
+
+- New file: exolve-from-puz.js: support for reading .puz
+- New file: exolve-player.html: drag and drop any exolve/ipuz/puz file
+- Put a * immediately after an enum to hide it.
+
+### Version: Exolve v0.97 December 10 2020
+
+- Make all lines <= 80 chars long (a step towards linting!).
+- Allow exolve puzzle ids be arbitrary strings.
+- Add support for reading the ipuz format.
+
+### Version: Exolve v0.96 October 18 2020
+
+- Minor changes: do not append a script element to the whole document for
+  every Exolve puzzle. Instead append/modify to the frame element for
+  that puzzle.
+- Return status boolean from ClearAll() to know whether the user went ahead
+  (for use in Exet).
+
+### Version: Exolve v0.95 October 10 2020
+
+- Skip the confirmation step if the confirmation message has been set to an
+  empty string via exolve-relabel.
+- Add sections exolve-force-hyphen-right`, exolve-force-hyphen-below,
+  exolve-force-bar-right`, and exolve-force-bar-below. Each such section is a
+  single-line section that contains a list of cells. This allows you to force
+  the creation of separator hyphens/bars even if not indicated by the enums.
+
 ### Version: Exolve v0.94 October 4 2020
 
 - Bug fix: in-clue-annos were not getting rendered properly in the current clue

@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v0.94 October 4 2020
+### Version: Exolve v1.00 January 20 2021
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -171,6 +171,10 @@ and the `exolve-end` line:
 * `exolve-option`
 * `exolve-language`
 * `exolve-relabel`
+* `exolve-force-hyphen-right`
+* `exolve-force-hyphen-below`
+* `exolve-force-bar-right`
+* `exolve-force-bar-below`
 
 Each section has the section name (`exolve-something`), followed by a colon.
 Other than the `exolve-preamble`/`exolve-prelude`, `exolve-grid`,
@@ -196,8 +200,7 @@ notation—[see this section](#extended-chessboard-notation)). I did not use
 Any text appearing before `exolve-begin` or after `exolve-end` is ingored.
 
 ## `exolve-id`
-Provide a unique id for this crossword puzzle. Use only alphanumeric characters
-and dashes (-), and start with a letter. This id is used as the key for
+Provide a unique id for this crossword puzzle. This id is used as the key for
 saving/restoring state and also to distinguish between multiple puzzles on a
 single page. You can create an unsolved version of a puzzle (to run a contest,
 for example) and, later, a version of the same puzzle that has the solutions,
@@ -448,6 +451,13 @@ pair of parentheses containing the text "word" or "letter" or "?" with anything
 before are after it as an enum (to allow the setter to specify the enum as
 "(two words)" or "(?)", for example).
 
+If the enum is immediately followed by a `*`, then it is not displayed to the
+user. Examples:
+```
+  1 Satellite (4)* MOON
+  2 Star (?)*
+```
+
 ### Annotations
 In a grid with solutions provided, the setter may include annotations for
 explaining how a clue works or for providing hints. Any text located after the
@@ -563,7 +573,8 @@ needed. Example:
 
 ### Splitting long clue lists
 Any line in a clues section that starts with --- initiates the rendering of
-a new table of clues.
+a new table of clues. If any text follows --- then it gets shown as the
+heading of the new table.
 
 ### Order of rendered clue lists
 The order in which the exolve-across, exolve-down, and exolve-nodir sections
@@ -626,6 +637,15 @@ direction, then they should probably also use the option "hide-inferred-numbers"
 in an [`exolve-option`](#exolve-option) section. Alternatively, they can use
 the "\~" decorator in the grid to skip numbering the cells using normal
 numbering.
+
+You can provide a heading for nodir section by placing it after
+`exolve-nodir:`, like this:
+```
+  exolve-nodir: Alphabetic clues
+    [P] Direct (5)
+    [Q] Server spilling one's drink (5)
+    ...
+```
 
 ### Nodir clues with cells explicitly specified
 In a nodir clue, you can specify not just the starting cell, but _all the cells_
@@ -1120,12 +1140,16 @@ Here are all the names of pieces of text that you can relabel:
 | `across-label`   | Across                               |
 | `down-label`     | Down                                 |
 | `tools-link`     | Tools                                |
-| `tools-link.hover` | Show/hide tools: list of control keys and scratch pad|
-| `tools-msg`      | &lt;ul&gt; &lt;li&gt; &lt;b&gt;Tab/Shift-Tab: [longish list of all control keys]...  &lt;/ul&gt;|                    |
+| `tools-link.hover` | Show/hide tools: manage storage, see list of control keys and scratch pad|
+| `tools-msg`      | Control keys: &lt;ul&gt; &lt;li&gt; &lt;b&gt;Tab/Shift-Tab: [longish list of all control keys]...  &lt;/ul&gt;|
+| `manage-storage` | Manage local storage                 |
+| `manage-storage-hover` | View puzzle Ids for which state has been saved. Delete old saved states to free up local storage space if needed|
+| `manage-storage-close` | Close (manage storage)         |
+| `manage-storage-close-hover` | Close the local storage management panel|
 | `exolve-link`    | Exolve on GitHub                     |
 | `report-bug`     | Report bug                           |
-| `saving-msg`     | Your entries are auto-saved in cookies, for puzzles accessed over HTTPS and not from local files.|
-| `saving-bookmark`| You can bookmark/save this link as additional back-up:|
+| `saving-msg`     | Your entries are auto-saved in the the browser's local storage.|
+| `saving-bookmark`| You can share the state using this link:|
 | `saving-url`     | URL                                  |
 | `shuffle`        | Scratch pad: (click here to shuffle) |
 | `shuffle.hover`  | Shuffle selected text (or all text, if none selected)|
@@ -1147,21 +1171,58 @@ Here are all the names of pieces of text that you can relabel:
 | `confirm-reveal-all` | Are you sure you want to reveal the whole solution!? |
 | `confirm-submit` | Are you sure you are ready to submit!? |
 | `confirm-incomplete-submit` | Are you sure you want to submit an INCOMPLETE solution!? |
+| `confirm-delete-id` | Delete puzzle state for puzzle id |
+| `confirm-delete-older` | Delete all puzzle states saved before |
+| `confirm-state-override` | Do you want to override the state saved in this device with the state found in the URL?|
 
 The `.hover`-suffixed names are for tooltips. These relabelings for these
 should not include HTML markup.
 
+The `confirm-` prefixed messages are all for dialogs seeking confirmation. They
+all have one special feature: if you set them to be emoty strings, then the
+confirmation step is skipped and the action is directly taken. For example:
+```
+  exolve-relabel:
+    confirm-check-all:
+```
+The above will skip the confirmation step when the solver clicks on "Check all."
+
+## `exolve-force-hyphen-right`, `exolve-force-hyphen-below`, `exolve-force-bar-right`, `exolve-force-bar-below`
+
+Each of these sections is a single-line section that contains a list of cells.
+This allows you to force the creation of separator hyphens/bars even if not
+indicated by the enums. This might be useful in diagramless puzzles (Exolve
+does not try to infer hyphen/bar locations from clues in diagramless puzzles),
+or if, for example, you do not want to give away the full enum for some clues,
+but just want to provide some/all of the separators. Example:
+```
+  exolve-force-hyphen-right: a5 c4
+  exolve-force-bar-below: a5 c4 d8
+```
+
 ## Saving state
 
-The software automatically saves state. It does so in the URL (after the #)
-and also in a cookie, using the id specified in the [`exolve-id`](#exolve-id)
-section as the key. The cookie is retained for 90 days after the last change.
+The software automatically saves state. It does so in the browser's local
+storage. Users can also copy and share a URL that saves the state after the #
+(if requested through provideStateUrl=true in the constructor). The state uses
+the puzzle id specified in the [`exolve-id`](#exolve-id) section as the key.
 
-Because of limits on cookie size and number of cookies, the state for some
-grid that was saved in a cookie may disappear if the solver opens lots of
-other grids from the same site, Such sites should encourage solvers to save
-or bookmark the URL (which also has the state) and/or implement server-side
-state saving.
+Please note that a variety of factors control access to and size limits of
+local storage. Especially when embedding Exolve puzzles in cross-site iframes,
+state saving may not work.
+
+Older versions of Exolve used to save state in a cookie. When loading a puzzle,
+the state is restored in the following preferential order, if possible:
+(1) from local storage, (2) from cookie, (3) from URL. If there is state in the
+URL as well as in the local storage, then the user is prompted to ask whether
+they want to override the local storage set with the state in the URL.
+
+Clicking on the "Tools" menu under the crossword grid makes a "Manage local
+storage" button visible. If you have saved a *lot* of puzzle states, then
+it's possible that you may fill up the local storage in the browser (you'll get
+a warning thereafter when state-saving fails for the first time after opening a
+puzzle). You can then choose to free up local storage by deleting the states of
+old puzzles, after clicking on this button.
 
 ## Serving and sharing
 
@@ -1318,6 +1379,30 @@ Dom. But you can direct it to be placed at different spot by creating an empty
 element (typically a DIV) with id="exolve" anywhere in the HTML file. The
 puzzle content will then be added inside this element.
 
+## Reading other formats
+
+### ipuz
+You can load the additional script file, `exolve-from-ipuz.js` and call
+`exolveFromIpuz(ipuz)` on an object in the
+[ipuz format](http://www.ipuz.org/crossword). See the example in
+`test-ipuz-solved.html` for an example.
+
+### .puz
+You can load the additional script file, `exolve-from-puz.js` and call
+`exolveFromPuz(puz)` on the contents of a .puz file (which are in the
+[puz format](https://code.google.com/archive/p/puz/wikis/FileFormat.wiki)).
+
+### exolve-player.html
+This is a generic web app for loading any crossword file (Exolve/ipuz/puz)
+to allow interactive solving. In case of Exolve, of course, if you have
+an HTML file already, you do not really need to use `exolve-player.html`.
+But, for ipuz/puz files, this might be a convenient player to use. Once I
+find a good OCR solution, I'll also enable opening pictures of crosswords.
+
+You can use your own copy of the player, or you can use [the one that I
+have put up on my site](https://viresh-ratnakar.github.io/exolve-player.html).
+
+
 ## API
 
 The Exolve code creates only the following names at global scope:
@@ -1346,7 +1431,8 @@ var exolvePuzzles;
 /**
  * Constructor to create an Exolve puzzle.
  *
- * puzzleText contains the puzzle specs.
+ * puzzleSpec is a string that contains the puzzle specs in the Exolve plain
+ *     text format.
  * containerId is the optional HTML id of the container element in which you
  *     want to create this puzzle. If empty, the puzzle is created inside
  *     the element with id "exolve" if it exists (and its id is changed to
@@ -1356,10 +1442,9 @@ var exolvePuzzles;
  *     web page.
  * customized is an optional function that will get called after the puzzle
  *     is set up. The Exolve object will be passed to the function.
- * addStateToUrl should be set to false only if you do *not* want to save
- *     the puzzle state in the URL (the puzzle state is also saved in a
- *     cookie, but that does not work for local files). Unless you are
- *     embedding the puzzle in an iframe for some reason, set this to true.
+ * provideStateUrl should be set to true if you also want to provide a URL
+ *     that includes the current state and can be bookmarked or shared. Note
+ *     that the puzzle state is always attempted to be saved in local storage.
  * visTop should be set to the height of any sticky/fixed position elements
  *     at the top of the page (normally just 0).
  * maxDim If non-zero, use this as the suggested max size of the container
@@ -1368,7 +1453,7 @@ var exolvePuzzles;
 function Exolve(puzzleText,
                 containerId="",
                 customizer=null,
-                addStateToUrl=true,
+                provideStateUrl=true,
                 visTop=0,
                 maxDim=0) {...}
 
@@ -1378,17 +1463,17 @@ function Exolve(puzzleText,
  * See documentation of parameters above the Exolve constructor definition.
  */
 function createExolve(puzzleText, containerId="",
-                      addStateToUrl=true, visTop=0, maxDim=0) {
+                      provideStateUrl=true, visTop=0, maxDim=0) {
   const customizer = (typeof customizeExolve === 'function') ?
       customizeExolve : null;
   let p = new Exolve(puzzleText, containerId, customizer,
-                     addStateToUrl, visTop, maxDim);
+                     provideStateUrl, visTop, maxDim);
 }
 
 /*
  * The global variable "puzzleText" should have been set to the puzzle specs.
  * inIframe can be set to true if the puzzle is embedded in an iframe, which
- *     will then set addStateToUrl to false.
+ *     will then set provideStateUrl to false.
  * @deprecated use createExolve().
  */
 function createPuzzle(inIframe=false) {
