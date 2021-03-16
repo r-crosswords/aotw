@@ -1,11 +1,18 @@
 // Antagony added file to provide hidden 'Parsing notes' panel 
 // without affecting the exolve files
 
-const currentDocNum = 13 // Sets which doc is the end of the navigation chain
+//Get/set the group-id, to determine which puzzle number is at the end of the navigation chain 
+var lastDocNum;
+var groupId = document.getElementById('ant-code').getAttribute('group-id');
+switch (groupId) {
+  case 'aotw': lastDocNum = 13; break;
+  case 'potd': lastDocNum = 29; break;
+  default: lastDocNum = 0; groupId = 'index'
+}
 
 // Insert custom HTML elements using the exolve hooked function customizeExolve
 function customizeExolve(puz) {
-  //Insert a carriage return before and remove the period from the end of anno soultions
+  //Insert a carriage return before and remove the period from the end of anno solutions
   for (let ci of puz.allClueIndices) {
     let clue = puz.clues[ci]
     let annoSpan = clue.annoSpan
@@ -87,7 +94,7 @@ function customizeExolve(puz) {
       return;
     }
     // Home button
-    let homeButton = '<a href="../">' +
+    let homeButton = '<a href="../' + groupId + extension + '">' +
                        '<button class="nav-button">Home</button>' +
                      '</a>';
     // Previous button -- disabled if it's the first grid in the nav chain
@@ -101,9 +108,9 @@ function customizeExolve(puz) {
     }
     // Next button -- disabled if it's the last (ongoing) grid in the nav chain
     let nextButton = '<button class="nav-button"' +
-                     (docNum >= currentDocNum ? ' disabled' : '') +
+                     (docNum >= lastDocNum ? ' disabled' : '') +
                      '>Next</button>';
-    if (docNum < currentDocNum) {
+    if (docNum < lastDocNum) {
       nextButton = '<a href="' + docName + zeroPad(docNum + 1, 3) + extension + '">' +
                      nextButton +
                    '</a>';
