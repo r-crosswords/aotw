@@ -1,0 +1,27 @@
+.clue {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.spoiler {
+  background-color: #ddd;
+  display: inline-block;
+  padding: 8px;
+  position: relative;
+}
+
+.spoiler:not(:active) {
+  background-color: #eee; 
+  color: #eee; 
+  min-width: 96px; 
+  user-select: none; 
+}
+
+.spoiler:not(:active)::before {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  content: 'Click/tap here to see the answer';
+  color: #999;
+}
