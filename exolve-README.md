@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.03 February 3 2021
+### Version: Exolve v1.08 March 12 2021
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -171,6 +171,7 @@ and the `exolve-end` line:
 * `exolve-option`
 * `exolve-language`
 * `exolve-relabel`
+* `exolve-maker`
 * `exolve-force-hyphen-right`
 * `exolve-force-hyphen-below`
 * `exolve-force-bar-right`
@@ -364,7 +365,7 @@ If you use a language/Script that uses compound letters made up of multiple
 Unicode characters (for example, Devanagari—see the
 [`exolve-language`](#exolve-language) section), then your _must_ separate grid
 letters (when specifying a grid with solutions) with a space (unless they are
-already separated by decorator). For example, this will *not* work:
+already separated by a decorator). For example, this will *not* work:
 ```
   exolve-grid:
      सेहत
@@ -374,6 +375,28 @@ This will work:
   exolve-grid:
      से ह त
 ```
+
+### Digits and special characters
+
+Normally, only the letters of the alphabet (A-Z, or script-specific) can be
+used in solution letters. However using [`exolve-option`](#exolve-option)
+`allow-digits` or `allow-chars:<chars>`, you may allow some non-alphabetic
+characters. If any of these characters is also a decorator or has a special
+meaning in grid specifications (i.e., is one of `|_+@!~*.?`), then it should
+be prefixed with `&` in the grid specifications. If `&` itself needs to be used
+in the grid, then it too should be prefixed with an `&`. For example:
+```
+  exolve-option: allow-chars:@.&
+  exolve-grid:
+    A &@ B &. C O M
+    && . . .  . . .
+```    
+
+Even though `0` has a special meaning in grid specifications, you do not
+have to escape `0` using an `&` prefix if `0` has been allowed in the grid via
+`allow-digits` or `allow-chars`. A technical caveat (for the sake of
+completeness) is that you cannot create a degenerate grid that has all entries
+made up entirely of `0s`.
 
 ## Some details about clue numbers
 Across and down clue numbers are automatically inferred from the grid, except
@@ -472,7 +495,7 @@ that clue is the current clue. Example:
 If a clue does not provide its anno, the software still creates a minimal anno
 consisting of just the solution text (that it infers from the grid and the
 enum). Even if the anno is provided, the software prefixes it with the inferred
-solution text. This might have meant that if in an older grid the the solution
+solution text. This might have meant that if in an older grid the solution
 was explicitly included in the anno, it would have got duplicated. So, the code
 does check to see if the solution string (punctuation/markup notwithstanding)
 is present at the head of the anno, and avoids duplicating it if so. If the
@@ -980,11 +1003,22 @@ The list of currently supported options is as follows:
   if the window is resized. The number of columns can only be one of
   the following: 1 (which is the same as what we get without the
   columnar-layout option, when the available width is too small), 2, or 3.
+  As of February 2021, columnar layout is quirky: Chrome supports it best,
+  but all browsers seem to have some peculiarities.
+- **`clues-at-right-in-two-columns`** If this option is specified, it affects
+  the column layout when the available width is wide enough for exactly two
+  columns (but not three or more). Normally, the clues panels get rendered
+  under the grid in two-column mode (the rationale is that a balanced look is
+  better). If this option in set, then in two-column mode, the clues panels
+  are rendered to the right of the grid. This option is automatically
+  turned on when you use the `clues-panel-lines` option (see below). This option
+  has no effect if the `columnar-layout` option is used.
 - **`hide-inferred-numbers`** If this option is specified, then the software does
   not display any clue numbers that were automatically inferred. Setters using
   non-numeric clue labels may want to specify this option.
 - **`clues-panel-lines:<N>`** Limit the across/down/nodir clues boxes to
-  a maximum of about N lines of text, adding scrollbars if needed.
+  a maximum of about N lines of text, adding scrollbars if needed. Also
+  implicitly turns on the `clues-at-right-in-two-columns` option.
 - **`offset-top:<N>`** Draw the grid with this much space above and under
   it (N pixels). Useful for drawing additional art around the grid using
   `customizeExolve()`, for example.
@@ -996,6 +1030,13 @@ The list of currently supported options is as follows:
   Please use color-background (see below).
 - **`allow-digits`** If this option is specified, then we allow solvers to enter
   digits in cells.
+- **`allow-chars:<chars>`** If this option is specified, then we allow solvers
+  to enter any of the characters (which would typically be special characters
+  or digits)  listed in `<chars>`. For example, `allow-chars:#!7` will allow the
+  characters `#`, `!`, and `7` to be used in the grid and will allow users to
+  type them. If any of these special characters is also a decorator or is a
+  character with a special meaning in grid specifications (i.e., one of
+  `|_+@!~*.?`), then to specify it in the grid, you have to prefix it with `&`.
 - **`hide-copy-placeholder-buttons`** This is an option that is only applicable
   when there are nodir clues without cells explicitly specified. It turns off
   the display of buttons to copy placeholder texts in those cases (see the
@@ -1149,13 +1190,15 @@ Here are all the names of pieces of text that you can relabel:
 | `tools-link`     | Tools                                |
 | `tools-link.hover` | Show/hide tools: manage storage, see list of control keys and scratch pad|
 | `tools-msg`      | Control keys: &lt;ul&gt; &lt;li&gt; &lt;b&gt;Tab/Shift-Tab: [longish list of all control keys]...  &lt;/ul&gt;|
+| `crossword-id`   | Crossword ID                         |
+| `maker-info`     | Exolve-maker info                    |
 | `manage-storage` | Manage local storage                 |
 | `manage-storage-hover` | View puzzle Ids for which state has been saved. Delete old saved states to free up local storage space if needed|
 | `manage-storage-close` | Close (manage storage)         |
 | `manage-storage-close-hover` | Close the local storage management panel|
 | `exolve-link`    | Exolve on GitHub                     |
 | `report-bug`     | Report bug                           |
-| `saving-msg`     | Your entries are auto-saved in the the browser's local storage.|
+| `saving-msg`     | Your entries are auto-saved in the browser's local storage.|
 | `saving-bookmark`| You can share the state using this link:|
 | `saving-url`     | URL                                  |
 | `shuffle`        | Scratch pad: (click here to shuffle) |
@@ -1182,8 +1225,8 @@ Here are all the names of pieces of text that you can relabel:
 | `confirm-delete-older` | Delete all puzzle states saved before |
 | `confirm-state-override` | Do you want to override the state saved in this device with the state found in the URL?|
 
-The `.hover`-suffixed names are for tooltips. These relabelings for these
-should not include HTML markup.
+The `.hover`-suffixed names are for tooltips. The relabelings for these should
+not include any HTML markup.
 
 The `confirm-` prefixed messages are all for dialogs seeking confirmation. They
 all have one special feature: if you set them to be emoty strings, then the
@@ -1193,6 +1236,13 @@ confirmation step is skipped and the action is directly taken. For example:
     confirm-check-all:
 ```
 The above will skip the confirmation step when the solver clicks on "Check all."
+
+## `exolve-maker`
+
+In this multiline section, you can include arbitrary metadata about the
+puzzle's construction. The Exet crossword construction web app uses this section
+to record some info such as its version and the lexicon it used. The metadata
+can be seen after clicking the Tools button.
 
 ## `exolve-force-hyphen-right`, `exolve-force-hyphen-below`, `exolve-force-bar-right`, `exolve-force-bar-below`
 
@@ -1429,6 +1479,46 @@ over a single page by a few lines.
 Note that you can unhighlight the current clue before printing by clicking on
 any black square or clicking on the puzzle title.
 
+If it does not make sense for some chunks of text or some HTML elements to be printed (for example,
+some instructions that only make sense in interactive mode), you can enclose them in an HTML element
+(such as a `DIV` or a `SPAN`) that has the class `xlv-dont-print`.
+
+## Layout
+
+This is a quick summary of layout-related notes (already covered in various
+sections above). This summary only applies to on-display layout (see above
+for print layout).
+
+The layout of the crossword depends on the available width. This
+description assumes a standard 15x15 grid with Across and Down clues—the
+layout may vary a bit if you have oversized grids, or more clues panels
+(such as `exolve-nodir` clues).
+
+If the `columnar-layout` option is used, then the clues are rendered in
+a newspaper-like manner, possibly starting under the grid, and spilling
+over into all available columns, while trying to keep the heights of
+all columns equal. If you choose this option, and you have clues with
+annotations/solutions available, please note that as the annotations
+get revealed progressively, the clues panel layout may shift around a bit.
+
+Without the `columnar-layout` option, if the width is enough for three
+columns, then the layout has the two clues panels laid out horizontally to
+the right of the grid. If the width is wide enough for only one column, then
+the layout has the clues panels laid out vertically under the grid.
+
+If the width is wide enough for exactly two columns, then the two clues
+panels get rendered side-by-side, under the grid. This is the choice
+I made, as laying them out to the right of the grid (under one another)
+would typically make a very long second column (especially long if
+all annotations are revealed), compared to the height of the first
+column (that contains the grid).
+
+However, if the `clues-panel-lines` option is used, it's likely that
+the clues panels will not get unduly tall, so in that case, even in
+two-column rendering, we lay out the clues panels to the right of the grid.
+You can also use the `clues-at-right-in-two-columns` option to force
+this kind of rendering in two-column mode.
+
 ## API
 
 The Exolve code creates only the following names at global scope:
@@ -1464,7 +1554,7 @@ var exolvePuzzles;
  *     the element with id "exolve" if it exists (and its id is changed to
  *     exolve<N> in that case, where <N> is the index of this puzzle among
  *     all the pages on the page). If containerId is empty and there is no
- *     element with id "exolve", the the puzzle is created at the end of the
+ *     element with id "exolve", the puzzle is created at the end of the
  *     web page.
  * customized is an optional function that will get called after the puzzle
  *     is set up. The Exolve object will be passed to the function.

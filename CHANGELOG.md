@@ -1,5 +1,63 @@
 # Changelog
 
+### Version: Exolve v1.08 March 12 2021
+
+- Add `exolve-option: allow-chars:<chars>` to allow special chars.
+- Change the allow-digits option implementation to use the same mechanism
+  as for allow-chars. In particular, get rid of the old use of -/~ as
+  state-chars for 0/1. We not use unprintable chars as state chars for
+  0/1/./?
+- Use `&` as an escape char in grid specs, to allow entry of decorators and
+  . and ? as entries, if added through allow-chars.
+- If state is found in the URL hash, clear it from there (whether or not it
+  is used) for a tidier appearance as well as to avoid generating an
+  unnecessary second confirm-dialog if you then copy the URL from the browser
+  and open in another window/tab.
+- If an expllcit solution is provided in square brackets in the clue, turn
+  off the "smart" checking that looks to see if the anno part following it
+  begins with the solution (the smart code is there to avoid duplication).
+- Tweak: limit the max width of the preamble (so that it doesn't protrude
+  beyond the grid/clues in the common case of a wide screen and a 15x15 grid).
+- Clean-up: back to max 80 columns code!
+
+### Merge pull request #61 from eigenfoo-forks/the-the
+
+- Fix "the the" typos.
+
+### Version: Exolve v1.07 February 27 2021
+
+- When scaling for available width, do not change the font size of the
+  main body of text. Use the computed letterSize _only_ within the grid.
+  This should make clues/preambles look better in mobile devices.
+
+### Version: Exolve v1.06 February 26 2021
+
+- Display the puzzle id and Exolve version after clicking the Tools link.
+- Add an `exolve-maker` multiline section in which construction
+  software (like Exet) can place some metadata. Such maker info, if found,
+  is also displayed under the Exolve version after clicking the Tools link.
+- Add exolve-maker sections when converting from ipuz/puz.
+- Save the parsed enum part from each clue within the clue object (in case
+  it is scrubbed with an asterisk, for Exet to grab it).
+- Show the Exolve version as a tooltip when hovering on the "Exolve on GitHub"
+  link.
+
+### Version: Exolve v1.05 February 19 2021
+
+- A couple of printing tweaks: do not print the current clue displayed
+  above the grid, add a bit more margin under the preamble, and add
+  a class called xlv-dont-print.
+- Bug-fix: allow check/reveal to go to single-cell mode with a long
+  click even when the cell is a diagramless blocked cell.
+
+### Version: Exolve v1.04 February 11 2021
+
+- In two-column layout, render clues panels to the right if
+  `clues-panel-lines` option has been used.
+- Also add an option (`clues-at-right-in-two-columns`) to force
+  this behaviour.
+- Add a "Layout" section in the README file.
+
 ### Version: Exolve v1.03 February 3 2021
 
 - Reduce a bit of vertical spacing. Make some fonts (such as in the
@@ -319,7 +377,7 @@
   the solution gets placed inside the placeholder blank slot instead of
   the head of the anno.
 
-- This would have meant that if in an older grid the the solution was explicitly
+- This would have meant that if in an older grid the solution was explicitly
   included in the anno, it would have got duplicated. So, the code does check
   to see if the solution string (punctuation/markup notwithstanding) is present
   at the head of the anno, and avoids duplicating it if so. If the solver wants

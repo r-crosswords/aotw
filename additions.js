@@ -1,12 +1,16 @@
-// Antagony added file to provide hidden 'Parsing notes' panel 
+// Antagony added file to provide hidden 'Parsing notes' panel, navigation buttons, etc.,
 // without affecting the exolve files
 
-//Get/set the group-id, to determine which puzzle number is at the end of the navigation chain 
+//The last document number for the appropriate set of puzzles
+const lastAotw = 13;
+const lastPotd = 29;
+
+//Get the group-id, to determine which last document number applies
 var lastDocNum;
 var groupId = document.getElementById('ant-code').getAttribute('group-id');
 switch (groupId) {
-  case 'aotw': lastDocNum = 13; break;
-  case 'potd': lastDocNum = 29; break;
+  case 'aotw': lastDocNum = lastAotw; break;
+  case 'potd': lastDocNum = lastPotd; break;
   default: lastDocNum = 0; groupId = 'index'
 }
 
@@ -87,7 +91,7 @@ function customizeExolve(puz) {
   let docInfo = (getDocInfo());
   let docName = docInfo.docName;
   let docNum = docInfo.docNum;
-  let extension = docInfo.extension;
+  let extension = docInfo.extension; //always .html now, but was empty in DropPages
   if (docNum > 0) {
     let stackDiv = puz.frame;
     if (!stackDiv) {

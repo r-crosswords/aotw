@@ -5,7 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v1.03 February 3 2021
+Version: Exolve v1.08 March 12 2021
 */
 
 @media (max-width: 500px) {
@@ -13,9 +13,14 @@ Version: Exolve v1.03 February 3 2021
     margin: 4px;
   }
 }
-
+.xlv-frame {
+  font-size: 16px;
+  font-family: serif;
+  font-weight: 400;
+  line-height: normal;
+  box-sizing: border-box;
+}
 .xlv-anno-text,
-.xlv-small-print,
 .xlv-status,
 .xlv-saving,
 .xlv-solution,
@@ -26,8 +31,10 @@ Version: Exolve v1.03 February 3 2021
   font-size: 12px;
   font-family: monospace;
 }
+.xlv-small-print,
+.xlv-metadata,
 .xlv-saving {
-  font-size: 10px;
+  font-size: x-small;
   font-family: monospace;
 }
 .xlv-grid-panel {
@@ -117,6 +124,15 @@ Version: Exolve v1.03 February 3 2021
 .xlv-clues {
   max-width: 984px;
 }
+.xlv-clues-to-right {
+  max-width: 492px;
+}
+@media (min-width: 1500px) {
+  .xlv-clues-to-right {
+    max-width: 984px;
+  }
+}
+
 .xlv-cell-num {
   font-family: sans-serif;
 }
@@ -188,10 +204,10 @@ Version: Exolve v1.03 February 3 2021
 .xlv-preamble {
   margin: 8px 0;
   padding: 0;
+  max-width: 1440px;
 }
 .xlv-small-print {
   margin: 4px 0 6px 0;
-  font-size: x-small;
 }
 .xlv-small-print > * {
   padding: 2px 4px 0 0;
@@ -203,6 +219,9 @@ Version: Exolve v1.03 February 3 2021
 .xlv-explanations,
 .xlv-submit {
   margin: 4px 0 6px 0;
+}
+.xlv-metadata {
+  padding: 0 0 4px 0;
 }
 .xlv-errors {
   font-weight: bold;
@@ -409,12 +428,17 @@ Version: Exolve v1.03 February 3 2021
   body {
     zoom: 100%;
   }
+  .xlv-preamble {
+    margin: 8px 0 20px;
+  }
   .xlv-controls,
   .xlv-status,
   .xlv-saving,
   .xlv-button,
+  .xlv-curr-clue-parent,
   .xlv-small-button,
   .xlv-small-print,
+  .xlv-dont-print,
   .xlv-postscript {
     display: none;
   }
