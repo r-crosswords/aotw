@@ -2,7 +2,7 @@
 // without affecting the exolve files
 
 //The last document number for the appropriate set of puzzles
-const lastAotw = 13;
+const lastAotw = 14;
 const lastPotd = 31;
 
 //Get the group-id, to determine which last document number applies
