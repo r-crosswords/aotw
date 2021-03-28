@@ -120,7 +120,7 @@ function customizeExolve(puz) {
                    '</a>';
     }
     // Nav bar, height set to lift it above the hover line
-    let navBar = '<div id="nav-bar" style="height: 55px">' +
+    let navBar = '<div id="nav-bar" class="footer" style="height: 50px">' +
                     homeButton + ' &nbsp; ' +
                     prevButton + ' &nbsp; ' +
                     nextButton +

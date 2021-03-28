@@ -16,13 +16,34 @@ and add any other styling as required
 .xlv-definition {
   text-decoration-color: crimson;
 }
+.xlv-question {
+  margin: 5px 0 5px 0;
+}
 
-/* minimual bolding  for pre-filled grid letters */
+/* minimal bolding  for pre-filled grid letters */
 .xlv-prefill {
   font-weight: 600;
 }
 
 /* Navigation bar buttons (not part of Exolve) */
+
+/* Fix to foot of viewport */
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+.footer {
+  padding: 1rem;
+}
+
+/* Style the buttons */
 .nav-button {
   background-color: #eeffee;
   border: 1px solid #d6ffd6;
@@ -44,7 +65,4 @@ and add any other styling as required
 .nav-button:disabled {
   color: gray;
   pointer-events: none;
-}
-.xlv-question {
-  margin: 5px 0 5px 0;
 }
