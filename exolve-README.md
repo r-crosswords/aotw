@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.08 March 12 2021
+### Version: Exolve v1.10 March 28 2021
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -143,8 +143,9 @@ as the square with the cursor is visible.
 "Clear/Check/Reveal all" buttons, the "Show ninas" button, and the "Submit"
 button solicit additional confirmation from the solver.
 
-You can click on the black background or on the puzzle title to unhighlight
-the current clue (for printing or screenshotting, for example).
+You can click on the black background or on the puzzle title, setter, or
+preamble (if present) to unhighlight the current clue (for printing or
+screenshotting, for example).
 
 ## Format
 The puzzle can contain the following "sections" between the `exolve-begin` line
@@ -1077,8 +1078,10 @@ be overriding), and descriptions.
 | `colour-prefill`           | blue          | Any letters pre-filled with the ! decorator.|
 | `colour-anno`              | darkgreen     | The text of the annotation.       |
 | `colour-solved`            | dodgerblue    | The clue number in the list of clues, once the clue has been solved.|
+| `colour-solution`          | dodgerblue    | The solution part of the anno, as well as entries in placeholder blanks.|
+| `colour-def-underline`     | dodgerblue    | The underline in a revealed definition within a clue.|
 | `colour-separator`         | blue          | The hyphens and dashes in multi-word lights. |
-| `colour-imp-text`          | darkgreen     | "Important" text: setter's name, answer entries, placeholder entries, grid-filling status.|
+| `colour-imp-text`          | darkgreen     | "Important" text: setter's name, answer entries, grid-filling status.|
 | `colour-button`            | #4caf50       | Buttons (Check/Reveal etc).       |
 | `colour-button-hover`      | darkgreen     | Buttons with mouseover.           |
 | `colour-button-text`       | white         | The text in buttons.              |

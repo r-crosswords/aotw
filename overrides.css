@@ -3,19 +3,6 @@ Antagony added css file to override standard settings in exolve-m.css
 and add any other styling as required
 */
 
-/* Make the annotation less like the clue text */
-.xlv-anno-text {
-  color: seagreen !important;
-  /* font-style: normal;
-  font-size: small;
-  font-family: sans-serif; */
-}
-.xlv-solution {
-  color: crimson;
-}
-.xlv-definition {
-  text-decoration-color: crimson;
-}
 .xlv-question {
   margin: 5px 0 5px 0;
 }
