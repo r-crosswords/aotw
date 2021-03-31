@@ -3,10 +3,11 @@ Antagony added css file to override standard settings in exolve-m.css
 and add any other styling as required
 */
 
-/* .xlv-definition {
-  background-color: azure;
+.xlv-definition {
+  /* background-color: azure; */
   text-underline-offset: 3px;
-} */
+  text-decoration-skip-ink: none;
+}
 
 .xlv-question {
   margin: 5px 0 5px 0;
