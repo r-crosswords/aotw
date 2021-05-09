@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.10 March 28 2021
+### Version: Exolve v1.13 April 10 2021
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -475,12 +475,39 @@ pair of parentheses containing the text "word" or "letter" or "?" with anything
 before are after it as an enum (to allow the setter to specify the enum as
 "(two words)" or "(?)", for example).
 
+### Suppressing enums or separators
+
 If the enum is immediately followed by a `*`, then it is not displayed to the
 user. Examples:
 ```
   1 Satellite (4)* MOON
   2 Star (?)*
 ```
+
+There might be puzzles where, even though the enum indicates multiple or
+hyphenated words, you do _not_ want a word-separator bar or a hyphen to be
+drawn in the grid. An example would be a grid where the special instructions
+ask for a letter to be removed before entering a solution into the grid. You
+can achieve this effect using the following bit of trickery:
+```
+  1 Clue with enum that implies hyphens and dashes, but they are suppressed
+    using trickery (<span>3,2-2,5-3</span>) (15)* Anno here...
+```
+Note that the enum numbers are wrapped in a &lt;span&gt; tag, which tricks
+Exolve into not parsing them. The length of the entry is specified after that,
+using the enum spec (15)\* that does not get displayed (but serves as a way
+to let Exolve know that what follows is the anno).
+
+### Missing clues and mismatched enums
+
+If there is a missing clue, or if the provided enum for a clue does not
+match the number of cells in the clue as per the grid (including any linked
+children clues), then a warning message gets shown. If the anomaly is
+deliberate rather than an oversight, the warning generation can be suppressed
+using `exolve-option: ignore-unclued` and/or
+`exolve-option: ignore-enum-mismatch`. Checking for missing clues is not
+done if there are any nodir clues, and checking for mismatched enums is
+not done if there are any diagramless cells.
 
 ### Annotations
 In a grid with solutions provided, the setter may include annotations for
@@ -870,6 +897,18 @@ This example is from a puzzle with two ninas. The first one is in the 10th
 column ("j"), and the second one is in the seventh row from the bottom as well
 as all the cells in the A12 and D16 clues.
 
+You can optionally pick the colour that the nina cells will have when revealed,
+by including it in the list (anywhere). You can use a valid
+[HTML colour name](https://www.w3schools.com/colors/colors_names.asp) or code
+(but without spaces). Example:
+```
+  exolve-nina: dodgerblue j5 j7 j9 c10r11 j13
+  exolve-nina: a7 b7 c7 d7 e7 A12 16d #ff00a1
+```
+Note that the colour that you specify will get shown transparently overlaid over
+the normal cell colour (white, unless changed with `exolve-option:colour-cell`)
+as well as over the active cell colour.
+
 You can also have ninas that involve arbitrary letters/words from within the
 text of the clues or the prelude. This involves a little bit of HTML.
 Just enclose the text that you want to highlight as a nina in a "span" tag,
@@ -899,8 +938,14 @@ like 12a, 12A, 33d, or 33D.
 ```
   exolve-colour: palegreen j5 j7 c10r9 c10r11 j13 A12 16D
 ```
-The colour itself can be any valid
-[HTML colour name](https://www.w3schools.com/colors/colors_names.asp).
+The colour is specified anywhere in the space-separated list and
+can be any valid
+[HTML colour name](https://www.w3schools.com/colors/colors_names.asp) or code
+(but without spaces).
+
+Note that the colour that you specify will get shown transparently overlaid over
+the normal cell colour (white, unless changed with `exolve-option:colour-cell`)
+as well as over the active cell colour.
 
 ## `exolve-question`
 Often, the setter might have hidden additional information for the solver to
@@ -1017,6 +1062,10 @@ The list of currently supported options is as follows:
 - **`hide-inferred-numbers`** If this option is specified, then the software does
   not display any clue numbers that were automatically inferred. Setters using
   non-numeric clue labels may want to specify this option.
+- **`ignore-unclued`** If this option is specified, then any generated warnings
+  about missing clues are suppressed.
+- **`ignore-enum-mismatch`** If this option is specified, then any generated warnings
+  about enum-mismatches are suppressed.
 - **`clues-panel-lines:<N>`** Limit the across/down/nodir clues boxes to
   a maximum of about N lines of text, adding scrollbars if needed. Also
   implicitly turns on the `clues-at-right-in-two-columns` option.
@@ -1079,7 +1128,7 @@ be overriding), and descriptions.
 | `colour-anno`              | darkgreen     | The text of the annotation.       |
 | `colour-solved`            | dodgerblue    | The clue number in the list of clues, once the clue has been solved.|
 | `colour-solution`          | dodgerblue    | The solution part of the anno, as well as entries in placeholder blanks.|
-| `colour-def-underline`     | dodgerblue    | The underline in a revealed definition within a clue.|
+| `colour-def-underline`     | #3eb0ff       | The underline in a revealed definition within a clue.|
 | `colour-separator`         | blue          | The hyphens and dashes in multi-word lights. |
 | `colour-imp-text`          | darkgreen     | "Important" text: setter's name, answer entries, grid-filling status.|
 | `colour-button`            | #4caf50       | Buttons (Check/Reveal etc).       |
@@ -1163,9 +1212,9 @@ Here are all the names of pieces of text that you can relabel:
 | Name             | Default text                         |
 |------------------|--------------------------------------|
 | `clear`          | Clear this                           |
-| `clear.hover`    | Clear highlighted clues and squares. Clear crossers from full clues with a second click|
+| `clear.hover`    | Clear highlighted clues and squares. Clear crossers from full clues with a second click. Shortcut: Ctrl-q|
 | `clear-all`      | Clear all!                           |
-| `clear-all.hover` | Clear everything! A second click clears all placeholder entries in clues without known squares|
+| `clear-all.hover` | Clear everything! A second click clears all placeholder entries in clues without known squares. Shortcut: Ctrl-Q|
 | `check`          | Check this                           |
 | `checkcell`      | Check cell                           |
 | `check.hover`    | Erase mistakes in highlighted squares. Long-click to check the just current cell|
@@ -1227,6 +1276,9 @@ Here are all the names of pieces of text that you can relabel:
 | `confirm-delete-id` | Delete puzzle state for puzzle id |
 | `confirm-delete-older` | Delete all puzzle states saved before |
 | `confirm-state-override` | Do you want to override the state saved in this device with the state found in the URL?|
+| `warnings-label` | Please fix or use "ignore-unclued" / "ignore-enum-mismatch" [options](https://github.com/viresh-ratnakar/exolve/blob/master/README.md#exolve-option):|
+| `warnings.hover` | Issues detected: click &times; to dismiss|
+
 
 The `.hover`-suffixed names are for tooltips. The relabelings for these should
 not include any HTML markup.
@@ -1259,6 +1311,10 @@ but just want to provide some/all of the separators. Example:
   exolve-force-hyphen-right: a5 c4
   exolve-force-bar-below: a5 c4 d8
 ```
+
+Note that if you want to do the opposite of this—that is, if you want to
+suppress hyphens/bars implied by an enum, then use the trick [described
+earlier](#suppressing-enums-or-separators).
 
 ## Saving state
 

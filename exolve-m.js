@@ -79,7 +79,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 saveState=true) {
-  this.VERSION = 'Exolve v1.10 March 28 2021'
+  this.VERSION = 'Exolve v1.14 April 19 2021'
 
   this.puzzleText = puzzleSpec
   this.containerId = containerId
@@ -93,8 +93,22 @@ function Exolve(puzzleSpec,
   this.credits = []
   this.questionTexts = []
 
-  // Each nina will be an array containing location [i,j] pairs and/or span
-  // class names.
+  this.NINA_COLORS = [
+    'blue',
+    'green',
+    'aqua',
+    'fuchsia',
+    'yellow',
+    'crimson',
+    'limegreen',
+    'royalblue',
+    'mediumturquoise',
+    'mediumorchid',
+    'goldenrod',
+    'red',
+  ];
+  // Each nina will be object with props: colour and list (an array containing
+  // location [i,j] pairs and/or span class names).
   this.ninas = []
   // For span-class-specified ninas, ninaClassElements[] stores the elements
   // along with the colours to apply to them when showing the ninas.
@@ -219,10 +233,10 @@ function Exolve(puzzleSpec,
   this.textLabels = {
     'clear': 'Clear this',
     'clear.hover': 'Clear highlighted clues and squares. Clear crossers ' +
-        'from full clues with a second click',
+        'from full clues with a second click. Shortcut: Ctrl-q',
     'clear-all': 'Clear all!',
     'clear-all.hover': 'Clear everything! A second click clears all ' +
-        'placeholder entries in clues without known squares',
+        'placeholder entries in clues without known squares. Shortcut: Ctrl-Q',
     'check': 'Check this',
     'checkcell': 'Check cell',
     'check.hover': 'Erase mistakes in highlighted squares. Long-click to ' +
@@ -262,6 +276,7 @@ function Exolve(puzzleSpec,
          <li><b>Enter, Click/Tap:</b> Toggle current direction</li>
          <li><b>Arrow keys:</b>
              Move to the nearest light square in that direction</li>
+         <li><b>Ctrl-q:</b> Clear this, <b>Ctrl-Q:</b> Clear All!</li>
          <li><b>Spacebar:</b>
              Place/clear block in the current square if it's diagramless</li>
        </ul>`,
@@ -310,6 +325,10 @@ function Exolve(puzzleSpec,
     'confirm-delete-older': 'Delete all puzzle states saved before',
     'confirm-state-override': 'Do you want to override the state saved in ' +
         'this device with the state found in the URL?',
+    'warnings-label': 'Please fix or use "ignore-unclued" / ' +
+        '"ignore-enum-mismatch" <a href="https://github.com/viresh-ratnakar/' +
+        'exolve/blob/master/README.md#exolve-option">options</a>:',
+    'warnings.hover': 'Issues detected: click on [&times;] to dismiss',
   }
 
   // Variables set by exolve-option
@@ -325,6 +344,8 @@ function Exolve(puzzleSpec,
   this.langMaxCharCodes = 1
   this.columnarLayout = false
   this.cluesToRight = false
+  this.ignoreUnclued = false
+  this.ignoreEnumMismatch = false
 
   this.createPuzzle()
 }
@@ -374,6 +395,8 @@ Exolve.prototype.init = function() {
                       autocomplete="off" spellcheck="false"
                       class="xlv-grid-input xlv-cell-text"/></div>
               <div id="${this.prefix}-nina-group"
+                  style="display:none;left:0;top:0"></div>
+              <div id="${this.prefix}-colour-group"
                   style="display:none;left:0;top:0"></div>
             </div> <!-- xlv-grid-parent -->
           </div> <!-- xlv-grid-parent-centerer -->
@@ -589,6 +612,7 @@ Exolve.prototype.init = function() {
   this.currClueParent = document.getElementById(
       this.prefix + '-curr-clue-parent')
   this.ninaGroup = document.getElementById(this.prefix + '-nina-group')
+  this.colourGroup = document.getElementById(this.prefix + '-colour-group')
 
   this.statusNumFilled = document.getElementById(
       this.prefix + '-status-num-filled')
@@ -798,27 +822,46 @@ Exolve.prototype.maybeClueIndex = function(s) {
   return s
 }
 
+Exolve.prototype.isColour = function(s) {
+  const e = new Option().style;
+  e.color = s;
+  return e.color !== '';
+}
+
 // Parse a nina line, which consists of cell locations or clue indices.
 // Convert the cell locations to [row col] and push an array of these to the
 // global ninas array.
 Exolve.prototype.parseNina = function(s) {
-  let nina = []
+  let ninaList = []
   let cellsOrOthers = s.split(' ')
+  let colour = ''
   for (let cellOrOther of cellsOrOthers) {
     if (!cellOrOther) {
       continue
     }
+    if (this.isColour(cellOrOther)) {
+      if (colour) {
+        this.throwErr(
+          cellOrOther + ' is a colour in a nina already coloured: ' + colour);
+      }
+      colour = cellOrOther;
+      continue;
+    }
     let cellLocation = this.parseCellLocation(cellOrOther)
     if (!cellLocation) {
       // Must be a class name, for a span-class-specified nina OR a clue index
-      nina.push(this.maybeClueIndex(cellOrOther))
+      ninaList.push(this.maybeClueIndex(cellOrOther))
     } else {
-      nina.push(cellLocation)
+      ninaList.push(cellLocation)
     }
   }
-  if (nina.length > 0) {
-    this.ninas.push(nina)
+  if (ninaList.length == 0) {
+    this.throwErr('No cells/clues/classes in nina: ' + s);
   }
+  this.ninas.push({
+      colour: colour,
+      list: ninaList,
+  });
 }
 
 Exolve.prototype.parseColour = function(s) {
@@ -828,9 +871,21 @@ Exolve.prototype.parseColour = function(s) {
     if (!c) {
       continue
     }
-    if (!colour) {
-      colour = c
-      continue;
+    if (this.isColour(c)) {
+      if (!colour) {
+        colour = c
+      } else {
+        this.throwErr(
+          c + ' is a colour in exolve-colour already coloured: ' + colour);
+      }
+    }
+  }
+  if (!colour) {
+    this.throwErr('No valid colour name in: "' + s + '"');
+  }
+  for (let c of colourAndCells) {
+    if (!c || this.isColour(c)) {
+      continue
     }
     let cellLocation = this.parseCellLocation(c)
     if (!cellLocation) {
@@ -872,7 +927,10 @@ Exolve.prototype.answerListener = function(answer, forceUpper) {
 // Parse a questionTexts and create the question elements for (which include
 // an input box for the answer). The solution answer may be provided after the
 // last ')'.
-Exolve.prototype.displayQuestions = function() {
+Exolve.prototype.redisplayQuestions = function() {
+  this.questions.innerHTML = '';
+  const savedAnsList = this.answersList.slice();
+  this.answersList = [];
   for (let s of this.questionTexts) {
     let enumParse = this.parseEnum(s)
     let inputLen = enumParse.placeholder.length
@@ -942,6 +1000,9 @@ Exolve.prototype.displayQuestions = function() {
     answer.addEventListener(
         'input', this.answerListener.bind(this, answer, forceUpper));
   }
+  for (const a of savedAnsList) {
+    if (!a.isq) this.answersList.push(a);
+  }
 }
 
 Exolve.prototype.parseSubmit = function(s) {
@@ -978,6 +1039,14 @@ Exolve.prototype.parseOption = function(s) {
     }
     if (spart == "clues-at-right-in-two-columns") {
       this.cluesToRight = true
+      continue
+    }
+    if (spart == "ignore-unclued") {
+      this.ignoreUnclued = true
+      continue
+    }
+    if (spart == "ignore-enum-mismatch") {
+      this.ignoreEnumMismatch = true
       continue
     }
     if (spart == "allow-digits") {
@@ -1020,6 +1089,9 @@ Exolve.prototype.parseOption = function(s) {
       let key = kv[0].substr(kv[0].indexOf('-') + 1);
       if (!this.colorScheme[key]) {
         this.throwErr('Unsupported coloring option: ' + kv[0])
+      }
+      if (!this.isColour(kv[1])) {
+        this.throwErr('Invalid colour for ' + key + ': ' + kv[1])
       }
       this.colorScheme[key] = kv[1]
       continue
@@ -1158,9 +1230,44 @@ Exolve.prototype.throwErr = function(error) {
   const e = document.getElementById(this.prefix + '-errors')
   if (e) {
     e.innerHTML = e.innerHTML + '<br/>' + error;
+  } else {
+    alert('Exolve found unrecoverable error: ' + error);
   }
   this.gridWidth = 0
   throw error;
+}
+
+Exolve.prototype.dismissWarnings = function() {
+  const w = document.getElementById(this.prefix + '-warnings-panel')
+  if (w) {
+    w.style.display = 'none';
+  }
+}
+
+Exolve.prototype.showWarning = function(warning) {
+  let w = document.getElementById(this.prefix + '-warnings')
+  if (!w) {
+    const e = document.getElementById(this.prefix + '-errors')
+    e.insertAdjacentHTML('beforeend', `
+      <div id="${this.prefix}-warnings-panel"
+          class="xlv-wide-box"
+          title="${this.textLabels['warnings.hover']}">
+        <div class="xlv-warnings-label">
+          <button class="xlv-small-button"
+              id="${this.prefix}-dismiss-warnings">
+            &times;
+          </button>
+          ${this.textLabels["warnings-label"]}
+        </div>
+        <ul id="${this.prefix}-warnings" class="xlv-warnings">
+        </ul>
+      </div>`);
+    w = document.getElementById(this.prefix + '-warnings')
+    const wd = document.getElementById(this.prefix + '-dismiss-warnings')
+    wd.addEventListener('click', this.dismissWarnings.bind(this));
+  }
+  w.insertAdjacentHTML('beforeend', `
+      <li>${warning}</li>`);
 }
 
 // Run some checks for serious problems with grid dimensions, etc. If found,
@@ -1186,6 +1293,27 @@ Exolve.prototype.checkConsistency = function() {
       this.throwErr('Have ' + this.submitKeys.length +
                     ' submit parameter keys, need ' + numKeys);
     }
+  }
+  let noClueList = ''
+  for (let ci of Object.keys(this.clues)) {
+    const clue = this.clues[ci];
+    const cname = clue.label + clue.dir.toLowerCase();
+    if (clue.parentClueIndex) {
+      continue
+    }
+    if (!clue.clue) {
+      if (noClueList) noClueList += ', '
+      noClueList += cname
+    }
+    const lightLen = this.getAllCells(ci).length;
+    if (!this.ignoreEnumMismatch && !this.hasDgmlessCells &&
+        clue.enumLen > 0 && lightLen > 0 && clue.enumLen != lightLen) {
+      this.showWarning(cname + ": enum asks for " + clue.enumLen +
+          " cells, but the grid shows " + lightLen + " cells");
+    }
+  }
+  if (!this.hasNodirClues && !this.ignoreUnclued && noClueList) {
+    this.showWarning("No clue(s) provided for: " + noClueList);
   }
 }
 
@@ -2014,13 +2142,13 @@ Exolve.prototype.parseCellsOfOrphan = function(s) {
   return cells.length == 0 ? null : {cells: cells, segments: segments}
 }
 
-Exolve.prototype.setClueSolution = function(ci) {
+Exolve.prototype.getAllCells = function(ci) {
   let theClue = this.clues[ci]
   if (!theClue) {
-    return;
+    return [];
   }
-  if (theClue.solution || theClue.parentClueIndex) {
-    return;
+  if (theClue.parentClueIndex) {
+    return [];
   }
   let clueIndices = this.getLinkedClues(ci)
   let cells = []
@@ -2036,6 +2164,15 @@ Exolve.prototype.setClueSolution = function(ci) {
       }
     }
   }
+  return cells;
+}
+
+Exolve.prototype.setClueSolution = function(ci) {
+  let theClue = this.clues[ci]
+  if (!theClue || theClue.solution) {
+    return;
+  }
+  let cells = this.getAllCells(ci);
   if (cells.length == 0) {
     return;
   }
@@ -2272,11 +2409,7 @@ Exolve.prototype.isOrphanWithReveals = function(clueIndex) {
 }
 
 Exolve.prototype.allCellsKnown = function(clueIndex) {
-  let cis = this.getLinkedClues(clueIndex)
-  if (!cis || cis.length == 0) {
-    return false
-  }
-  clueIndex = cis[0]
+  clueIndex = this.clueOrParentIndex(clueIndex);
   let clue = this.clues[clueIndex]
   if (!clue) {
     return false
@@ -2284,23 +2417,8 @@ Exolve.prototype.allCellsKnown = function(clueIndex) {
   if (!clue.enumLen) {
     return false
   }
-  let allKnown = false
-  let numCells = 0
-  let numPrefilled = 0
-  for (let ci of cis) {
-    if (!this.clues[ci]) {
-      return false
-    }
-    if (this.clues[ci].cells.length > 0) {
-      numCells += this.clues[ci].cells.length
-    } else if (this.clues[ci].cellsOfOrphan &&
-               this.clues[ci].cellsOfOrphan.length > 0) {
-      numCells += this.clues[ci].cellsOfOrphan.length
-    } else {
-      return false
-    }
-  }
-  return numCells == clue.enumLen
+  const cells = this.getAllCells(clueIndex);
+  return cells.length == clue.enumLen
 }
 
 // For each cell grid[i][j], set {across,down}ClueLabels using previously
@@ -3486,11 +3604,7 @@ Exolve.prototype.deactivateCurrCell = function() {
   for (let x of this.activeCells) {
     let gridCell = this.grid[x[0]][x[1]]
     let cellRect = gridCell.cellRect
-    if (gridCell.colour) {
-      cellRect.style.fill = gridCell.colour
-    } else {
-      cellRect.style.fill = this.colorScheme['cell']
-    }
+    cellRect.style.fill = this.colorScheme['cell']
     if (!gridCell.prefill) {
       gridCell.cellText.style.fill = this.colorScheme['light-text']
     }
@@ -4301,13 +4415,21 @@ Exolve.prototype.handleKeyUp = function(e) {
   this.handleKeyUpInner(key)
 }
 
-  // For tab/shift-tab, we intercept KeyDown
-Exolve.prototype.handleTabKeyDown = function(e) {
+// For tab/shift-tab, ctrl-q, ctrl-Q
+Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode
   if (key == 9) {
     if (this.handleKeyUpInner(key, e.shiftKey)) {
       // Tab input got used already.
       e.preventDefault()
+    }
+  } else if (e.ctrlKey && (e.key == 'q' || e.key == 'Q')) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (e.key == 'Q') {
+      this.clearAll();
+    } else {
+      this.clearCurr();
     }
   }
 }
@@ -4593,8 +4715,8 @@ Exolve.prototype.deactivator = function() {
 
 Exolve.prototype.createListeners = function() {
   this.gridInput.addEventListener('keyup', this.handleKeyUp.bind(this));
-  // Listen for tab/shift tab everywhere in the puzzle area.
-  this.frame.addEventListener('keydown', this.handleTabKeyDown.bind(this));
+  // Listen for tab/shift-tab, ctrl-q/Q everywhere in the puzzle area.
+  this.frame.addEventListener('keydown', this.handleKeyDown.bind(this));
   this.gridInput.addEventListener('input', this.handleGridInput.bind(this));
   this.gridInputWrapper.addEventListener('click',
       this.toggleCurrDirAndActivate.bind(this));
@@ -4610,6 +4732,31 @@ Exolve.prototype.createListeners = function() {
   
   window.addEventListener('scroll', this.makeCurrClueVisible.bind(this));
   window.addEventListener('resize', this.handleResize.bind(this));
+}
+
+Exolve.prototype.recolourCells = function() {
+  // Set colours specified through exolve-colour.
+  this.colourGroup.innerHTML = '';
+  for (let cellColour of this.cellColours) {
+    if (cellColour.length == 2) {
+      const ci = cellColour[0]
+      if (!this.clues[ci]) {
+        continue
+      }
+      let colour = cellColour[1]
+      for (let cell of this.clues[ci].cells) {
+        const row = cell[0]
+        const col = cell[1]
+        this.colourGroup.appendChild(this.makeColouredRect(row, col, colour));
+      }
+    } else {
+      const row = cellColour[0]
+      const col = cellColour[1]
+      const colour = cellColour[2]
+      this.colourGroup.appendChild(this.makeColouredRect(row, col, colour));
+    }
+  }
+  this.colourGroup.style.display = (this.cellColours.length > 0) ? '' : 'none';
 }
 
 Exolve.prototype.displayGrid = function() {
@@ -4713,29 +4860,7 @@ Exolve.prototype.displayGrid = function() {
     }
   }
 
-  // Set colours specified through exolve-colour.
-  for (let cellColour of this.cellColours) {
-    if (cellColour.length == 2) {
-      let ci = cellColour[0]
-      if (!this.clues[ci]) {
-        continue
-      }
-      let colour = cellColour[1]
-      for (let cell of this.clues[ci].cells) {
-        this.grid[cell[0]][cell[1]].colour = colour
-        this.grid[cell[0]][cell[1]].cellRect.style.fill = colour
-      }
-    } else {
-      let row = cellColour[0]
-      let col = cellColour[1]
-      if (!this.grid[row][col].cellRect) {
-        continue
-      }
-      let colour = cellColour[2]
-      this.grid[row][col].colour = colour
-      this.grid[row][col].cellRect.style.fill = colour
-    }
-  }
+  this.recolourCells();
 
   // Bars/word-ends to the right and under; hyphens.
   for (let i = 0; i < this.gridHeight; i++) {
@@ -4864,30 +4989,39 @@ Exolve.prototype.addCellText = function(row, col, text,
   return cellText
 }
 
-Exolve.prototype.displayNinas = function() {
-  const NINA_COLORS = [
-    'rgba(0,0,255,0.2)',
-    'rgba(0,255,0,0.2)',
-    'rgba(0,255,255,0.2)',
-    'rgba(255,0,255,0.2)',
-    'rgba(255,255,0,0.2)',
-    'rgba(255,50,50,0.2)',
-    'rgba(50,255,50,0.2)',
-    'rgba(50,50,255,0.2)',
-    'rgba(50,200,200,0.2)',
-    'rgba(200,50,200,0.2)',
-    'rgba(200,200,50,0.2)',
-  ];
+Exolve.prototype.makeColouredRect = function(row, col, colour) {
+  const rect = document.createElement('div');
+  const cellLeft = this.cellLeftPos(col, this.GRIDLINE)
+  const cellTop = this.cellTopPos(row, this.GRIDLINE)
+  rect.style.left =  '' +  cellLeft + 'px';
+  rect.style.top = '' + cellTop + 'px';
+  rect.style.width = '' + this.squareDim + 'px';
+  rect.style.height = '' + this.squareDim + 'px';
+  rect.style.backgroundColor = colour;
+  rect.setAttributeNS(null, 'class', 'xlv-coloured-cell');
+  rect.addEventListener(
+      'click', this.cellActivator.bind(this, row, col));
+  return rect;
+}
+
+Exolve.prototype.redisplayNinas = function() {
+  this.ninaGroup.innerHTML = '';
+  this.ninaClassElements = [];
   let ninaColorIndex = 0;
   for (let nina of this.ninas) {
     // First resolve clue indices to cells.
     let nina2 = []
-    for (let cellOrOther of nina) {
+    for (let cellOrOther of nina.list) {
       if (!Array.isArray(cellOrOther) && this.clues[cellOrOther]) {
         nina2 = nina2.concat(this.clues[cellOrOther].cells)
       } else {
         nina2.push(cellOrOther)
       }
+    }
+    let colour = nina.colour;
+    if (!colour) {
+      colour = this.NINA_COLORS[ninaColorIndex];
+      ninaColorIndex = (ninaColorIndex + 1) % this.NINA_COLORS.length
     }
     for (let cellOrClass of nina2) {
       if (!Array.isArray(cellOrClass)) {
@@ -4900,25 +5034,15 @@ Exolve.prototype.displayNinas = function() {
         for (let x = 0; x < elts.length; x++) {
           this.ninaClassElements.push({
             element: elts[x],
-            colour:  NINA_COLORS[ninaColorIndex],
+            colour: colour,
           });
         }
         continue
       }
       const row = cellOrClass[0]
       const col = cellOrClass[1]
-      const ninaRect = document.createElement('div');
-      ninaRect.style.left =  '' +  this.grid[row][col].cellLeft + 'px';
-      ninaRect.style.top = '' + this.grid[row][col].cellTop + 'px';
-      ninaRect.style.width = '' + this.squareDim + 'px';
-      ninaRect.style.height = '' + this.squareDim + 'px';
-      ninaRect.style.backgroundColor = NINA_COLORS[ninaColorIndex]
-      ninaRect.setAttributeNS(null, 'class', 'xlv-nina');
-      ninaRect.addEventListener(
-          'click', this.cellActivator.bind(this, row, col));
-      this.ninaGroup.appendChild(ninaRect);
+      this.ninaGroup.appendChild(this.makeColouredRect(row, col, colour));
     }
-    ninaColorIndex = (ninaColorIndex + 1) % NINA_COLORS.length
   }
 }
 
@@ -5658,23 +5782,23 @@ Exolve.prototype.createPuzzle = function() {
 
   this.applyStyles()
 
-  this.displayQuestions()
+  this.redisplayQuestions()
   this.displayClues()
   this.displayGridBackground()
   this.createListeners()
   this.displayGrid()
-  this.displayNinas()
+  this.redisplayNinas()
   this.displayButtons()
 
   this.parseAndDisplayPS()
   this.setColumnLayout()
 
   this.restoreState()
+  this.checkConsistency()
 
   if (this.customizer) {
     this.customizer(this)
   }
-  this.checkConsistency()
 }
 
 /**

@@ -1,5 +1,60 @@
 # Changelog
 
+### Version: Quick unnumbered tweak
+
+- Shorter warnings label
+
+### Version: Quick unnumbered bug-fix
+
+- checkConsistency() should be called before the customizer function. Messes
+  up Exet otherwise.
+
+### Version: Exolve v1.14 April 19 2021
+
+- Add keyboard shortcuts Ctrl-q and Ctrl-Q for "Clear this" and "Clear all!"
+- Detect and show warnings for unclued lights and enum-mismatches.
+  - Add exolve-options to suppress: suppress unclued warnings if
+    exolve-option "ignore-unclued" is set, and suppress enum-mismatch warnings
+    if exolve-option "ignore-enum-mismatch" is set.
+  - Do not generate missing clues warnings if there are nodir clues.
+  - Do not generate enum-mismatch warnings if there are diagramless cells.
+
+### Version: Exolve v1.13 April 10 2021
+
+- Another minor update for Exet. Make NINA_COLORS a class member, and change
+  the colours to be more common names.
+- Minor bugfix in the recently updated redisplayQuestions().
+
+### Version: Unnumbered minor tweak
+
+- Use CSS for setting xlv-coloured-cell opacity. Change it to 0.25 from 0.2.
+- Darken nina colors slightly to compensate.
+
+### Version: Exolve v1.12 April 8 2021
+
+- Implement exolve-colour the same way as exolve-nina: using a transparent
+  div overlay.
+- Bug-fix: for revealed ninas, it was the case that clicking a nina cell
+  wasn't toggling direction. Fixed by making the grid-wrapper div have a
+  higher z-index.
+- Expose recolourCells(), redisplayNinas(), redisplayQuestions() as
+  functions (for Exet).
+
+### Version: Exolve v1.11 April 7 2021
+
+- Make throwErr() show the error as an alert if the DOM element is not
+  available to show it.
+- Add an isColor() function. Use it for checking the validity of
+  colours in exolve-nina, exolve-colour, exolve-option:colour-...
+- Allow a specific colour to be optionally specified in exolve-nina.
+- Allow the specified colour to appear anywhere in the list in
+  exolve-colour, and also now in exolve-colour.
+
+### Version: Unnumbered minor tweak to v1.10
+
+- Make the def underline thicker, move it down a bit, and make it very
+  slightly lighter by default than the solved/solution colour.
+
 ### Version: Exolve v1.10 March 28 2021
 
 - Make the underline colour in a revealed definition and the solution text
