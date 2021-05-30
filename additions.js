@@ -2,7 +2,7 @@
 
 //The last document number for the appropriate set of puzzles
 const lastAotw = 14;
-const lastPotd = 39;
+const lastPotd = 40;
 
 //Get the group-id, to determine which last document number applies
 var lastDocNum;
