@@ -1,7 +1,7 @@
 // Antagony added file to provide hidden 'Parsing notes' panel, navigation buttons, etc., without affecting the exolve files
 
 //The last document number for the appropriate set of puzzles
-const lastAotw = 16;
+const lastAotw = 17;
 const lastPotd = 40;
 
 //Get the group-id, to determine which last document number applies
